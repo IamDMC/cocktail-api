@@ -18,7 +18,7 @@ class CocktailStepFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'instruction' => fake()->sentence
         ];
     }
 }
