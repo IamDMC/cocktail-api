@@ -47,7 +47,7 @@ class Cocktail extends Model
     public function ingredients(): BelongsToMany
     {
         return $this->belongsToMany(Ingredient::class)
-            ->withPivot('amount');
+            ->withPivot('amount', 'unit');
     }
 
     public function ratings(): HasMany
