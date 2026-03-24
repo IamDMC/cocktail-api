@@ -22,11 +22,6 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
 
-            $table->foreignId('category_id')
-                ->nullable()
-                ->constrained()
-                ->nullOnDelete();
-
             $table->timestamps();
         });
     }
