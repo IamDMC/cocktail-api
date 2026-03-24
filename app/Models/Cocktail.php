@@ -18,7 +18,6 @@ class Cocktail extends Model
         'description',
         'is_public',
         'user_id',
-        'category_id'
     ];
 
     protected $casts = [
@@ -34,9 +33,9 @@ class Cocktail extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function category(): BelongsTo
+    public function categories(): BelongsToMany
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class);
     }
 
     public function steps(): HasMany
