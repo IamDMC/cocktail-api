@@ -15,16 +15,16 @@ class Ingredient extends Model
     protected $fillable = [
         'name',
         'description',
-        'unit'
+        'default_unit'
     ];
 
     protected $casts = [
-        'unit' => Unit::class
+        'default_unit' => Unit::class
     ];
 
     public function cocktails(): BelongsToMany
     {
         return $this->belongsToMany(Cocktail::class)
-            ->withPivot('amount');
+            ->withPivot('amount', 'unit');
     }
 }

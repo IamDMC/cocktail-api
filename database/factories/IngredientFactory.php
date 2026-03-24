@@ -21,7 +21,7 @@ class IngredientFactory extends Factory
         return [
             'name' => fake()->unique()->word,
             'description' => fake()->sentence,
-            'unit' => fake()->randomElement(Unit::cases())
+            'default_unit' => fake()->randomElement(Unit::cases())
         ];
     }
 }

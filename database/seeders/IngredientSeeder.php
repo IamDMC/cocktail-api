@@ -20,7 +20,7 @@ class IngredientSeeder extends Seeder
                 ['name' => $name],
                 [
                     'description' => $description,
-                    'unit' => $unit
+                    'default_unit' => $unit
                 ]
             );
         }
