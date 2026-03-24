@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Cocktail;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,17 @@ class CocktailFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->word,
+            'description' => fake()->sentence,
+            'is_public' => true,
+            'user_id' => User::factory()
         ];
+    }
+
+    public function isPrivate(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_public' => false,
+        ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Unit;
 use App\Models\Ingredient;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +19,9 @@ class IngredientFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->word,
+            'description' => fake()->sentence,
+            'unit' => fake()->randomElement(Unit::cases())
         ];
     }
 }
