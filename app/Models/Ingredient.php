@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $description
+ * @property string $default_unit
+ */
 class Ingredient extends Model
 {
     /** @use HasFactory<\Database\Factories\IngredientFactory> */
@@ -22,6 +28,9 @@ class Ingredient extends Model
         'default_unit' => Unit::class
     ];
 
+    /**
+     * @return BelongsToMany<Cocktail, $this>
+     */
     public function cocktails(): BelongsToMany
     {
         return $this->belongsToMany(Cocktail::class)
