@@ -10,6 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -52,19 +58,27 @@ class User extends Authenticatable
     // *******************************************
     // * Relationships
     // *******************************************
-
+    /**
+     * @return HasMany<Cocktail, $this>
+     */
     public function cocktails(): HasMany
     {
         return $this->hasMany(Cocktail::class);
     }
 
+    /**
+     * @return HasMany<Rating, $this>
+     */
     public function ratings(): HasMany
     {
         return $this->hasMany(Rating::class);
     }
 
+    /**
+     * @return BelongsToMany<Cocktail, $this>
+     */
     public function favoriteCocktails(): BelongsToMany
     {
-        return $this->belongsToMany(Cocktail::class);
+        return $this->belongsToMany(Cocktail::class, 'user_cocktail');
     }
 }
