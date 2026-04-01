@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Data\IngredientData;
+namespace App\Data\Cocktail\Create;
 
 use App\Enums\Unit;
 

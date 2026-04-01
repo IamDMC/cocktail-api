@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Data\Cocktail;
-
-use App\Data\CocktailStep\CreateCocktailStepData;
+namespace App\Data\Cocktail\Create;
 
 final readonly class CreateCocktailData
 {

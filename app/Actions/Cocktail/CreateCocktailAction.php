@@ -2,10 +2,9 @@
 
 namespace App\Actions\Cocktail;
 
-use App\Data\Cocktail\CreateCocktailData;
-use App\Data\CocktailStep\CreateCocktailStepData;
-use App\Data\IngredientData\CreateCocktailIngredientData;
-use App\Enums\Unit;
+use App\Data\Cocktail\Create\CreateCocktailData;
+use App\Data\Cocktail\Create\CreateCocktailStepData;
+use App\Data\Cocktail\Create\CreateCocktailIngredientData;
 use App\Models\Cocktail;
 use App\Models\CocktailStep;
 use Illuminate\Support\Collection;
@@ -35,7 +34,7 @@ final readonly class CreateCocktailAction
                 'user_id' => $cocktailData->userId
             ]);
 
-            $steps = $this->sortByStepNumber($steps);
+            $steps = $this->sortByStepNumber($steps)->values();
 
             foreach ($steps as $index => $step){
                 CocktailStep::create([
@@ -56,8 +55,7 @@ final readonly class CreateCocktailAction
                 ]);
             }
 
-
-            return $cocktail->refresh()->load(['steps', 'categories', 'ingredients']);
+            return $cocktail->fresh()->load(['steps', 'categories', 'ingredients']);
         });
     }
 
