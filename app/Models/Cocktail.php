@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $user_id
  *
  * @property-read float $average_rating
+ * @property-read Collection<int, Ingredient> $ingredients
+ * @property-read Collection<int, Category> $categories
+ * @property-read Collection<int, CocktailStep> $steps
+ * @property-read Collection<int, Rating> $ratings
+ * @property-read Collection<int, User> $favoredBy
  */
 
 class Cocktail extends Model
@@ -95,7 +101,7 @@ class Cocktail extends Model
 
     /**
      * @param Builder $query
-     * @return mixed
+     * @return Builder
      */
     public function scopePublic(Builder $query): Builder
     {

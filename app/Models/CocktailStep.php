@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * @property int $id
  * @property int $step_number
  * @property string $instruction
  * @property int $cocktail_id

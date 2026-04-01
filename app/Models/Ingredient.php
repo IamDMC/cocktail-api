@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int $id
  * @property string $name
  * @property string|null $description
- * @property string $default_unit
+ * @property Unit $default_unit
  */
 class Ingredient extends Model
 {
