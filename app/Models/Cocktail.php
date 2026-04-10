@@ -23,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, CocktailStep> $steps
  * @property-read Collection<int, Rating> $ratings
  * @property-read Collection<int, User> $favoredBy
+ *
+ * @method static Builder|self public()
  */
 
 class Cocktail extends Model
@@ -76,6 +78,7 @@ class Cocktail extends Model
     public function ingredients(): BelongsToMany
     {
         return $this->belongsToMany(Ingredient::class)
+            ->using(CocktailIngredient::class)
             ->withPivot('amount', 'unit');
     }
 
