@@ -3,11 +3,16 @@
 namespace App\Http\Requests\Cocktail;
 
 use App\Enums\Unit;
+use App\Models\Cocktail;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
-class CocktailStoreRequest extends FormRequest
+/**
+ * @property Cocktail $cocktail
+ */
+class CocktailUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +30,7 @@ class CocktailStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:4', 'max:60', 'unique:cocktails,name'],
+            'name' => ['required', 'string', 'min:4', 'max:60', Rule::unique('cocktails')->ignore($this->cocktail)],
             'description' => ['nullable', 'string', 'min:4', 'max:255'],
             'isPublic' => ['required', 'boolean'],
 
