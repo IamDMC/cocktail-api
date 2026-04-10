@@ -12,4 +12,12 @@ final readonly class CreateCocktailStepData
         public int $stepNumber,
         public string $instruction,
     ) {}
+
+    public function toArray(): array
+    {
+        return [
+            'stepNumber' => $this->stepNumber,
+            'instruction' => $this->instruction
+        ];
+    }
 }
