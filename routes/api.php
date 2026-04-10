@@ -11,4 +11,6 @@ Route::apiResource('/categories',\App\Http\Controllers\Api\CategoryController::c
 
 Route::apiResource('/ingredients', \App\Http\Controllers\Api\IngredientController::class);
 
+Route::apiResource('/cocktails', \App\Http\Controllers\Api\CocktailController::class);
+
 Route::get('/units', \App\Http\Controllers\Api\UnitController::class);

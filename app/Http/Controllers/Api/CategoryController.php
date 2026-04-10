@@ -7,58 +7,35 @@ use App\Http\Requests\Category\CategoryIndexRequest;
 use App\Http\Requests\Category\CategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
-use Illuminate\Http\Request;
+use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\QueryParam;
+use Knuckles\Scribe\Attributes\BodyParam;
+use Knuckles\Scribe\Attributes\UrlParam;
+use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 
+#[Group('Categories', description: 'Manage cocktail categories')]
 class CategoryController extends Controller
 {
-    /**
-     * List categories.
-     *
-     * @queryParam per_page int optional Number of items per page (pagination). Example: 10
-     * @queryParam limit int optional Limit the number of returned results. Used only if per_page is not set. Example: 5
-     *
-     * Behavior:
-     * - it prioritises per_page over limit
-     * - if neither per_page nor limit is provided, all categories are returned
-     *
-     */
+    #[QueryParam('per_page', 'int', 'Number of items per page (pagination)', required: false, example: 10)]
+    #[QueryParam('limit', 'int', 'Limit results if per_page is not set', required: false, example: 5)]
     public function index(CategoryIndexRequest $request)
     {
         $query = Category::query();
 
         if ($request->filled('per_page')){
             $result = $query->paginate($request->integer('per_page', 10));
-        }elseif ($request->filled('limit')){
+        } elseif ($request->filled('limit')){
             $result = $query->limit($request->integer('limit', 10))->get();
-        }else{
+        } else {
             $result = $query->get();
         }
 
         return CategoryResource::collection($result);
     }
 
-    /**
-     * Create a category.
-     *
-     * @bodyParam name string required The name of the category. Example: Cocktails
-     * @bodyParam description string required Description of the category. Example: Alcoholic drinks
-     *
-     * @response 201 {
-     *   "data": {
-     *     "id": 1,
-     *     "name": "Cocktails",
-     *     "description": "Alcoholic drinks"
-     *   }
-     * }
-     *
-     * @response 422 {
-     *   "message": "The given data was invalid.",
-     *   "errors": {
-     *     "name": ["The name field is required."]
-     *   }
-     * }
-     */
+    #[BodyParam('name', 'string', 'The name of the category', example: 'Cocktails')]
+    #[BodyParam('description', 'string', 'Description of the category', example: 'Alcoholic drinks')]
+    #[ResponseFromApiResource(CategoryResource::class, Category::class, status: 201)]
     public function store(CategoryRequest $request)
     {
         $category = Category::create($request->validated());
@@ -68,48 +45,17 @@ class CategoryController extends Controller
             ->setStatusCode(201);
     }
 
-    /**
-     * Show a category.
-     *
-     * @urlParam category int required The ID of the category. Example: 1
-     *
-     * @response 200 {
-     *   "data": {
-     *     "id": 1,
-     *     "name": "Cocktails",
-     *     "description": "Alcoholic drinks"
-     *   }
-     * }
-     *
-     * @response 404 {
-     *   "message": "No query results for model"
-     * }
-     */
+    #[UrlParam('category', 'int', 'The ID of the category', example: 1)]
+    #[ResponseFromApiResource(CategoryResource::class, Category::class)]
     public function show(Category $category)
     {
         return new CategoryResource($category);
     }
 
-    /**
-     * Update a category.
-     *
-     * @urlParam category int required The ID of the category. Example: 1
-     *
-     * @bodyParam name string optional The name of the category. Example: Cocktails
-     * @bodyParam description string optional Description of the category. Example: Alcoholic drinks
-     *
-     * @response 200 {
-     *   "data": {
-     *     "id": 1,
-     *     "name": "Cocktails",
-     *     "description": "Alcoholic drinks"
-     *   }
-     * }
-     *
-     * @response 422 {
-     *   "message": "The given data was invalid."
-     * }
-     */
+    #[UrlParam('category', 'int', 'The ID of the category', example: 1)]
+    #[BodyParam('name', 'string', 'The name of the category', required: false, example: 'Cocktails')]
+    #[BodyParam('description', 'string', 'Description of the category', required: false, example: 'Alcoholic drinks')]
+    #[ResponseFromApiResource(CategoryResource::class, Category::class)]
     public function update(CategoryRequest $request, Category $category)
     {
         $category->update($request->validated());
@@ -117,13 +63,7 @@ class CategoryController extends Controller
         return new CategoryResource($category);
     }
 
-    /**
-     * Delete a category.
-     *
-     * @urlParam category int required The ID of the category. Example: 1
-     *
-     * @response 204
-     */
+    #[UrlParam('category', 'int', 'The ID of the category', example: 1)]
     public function destroy(Category $category)
     {
         $category->delete();

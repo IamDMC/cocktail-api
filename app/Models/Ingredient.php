@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int $id
  * @property string $name
  * @property string|null $description
- * @property string $default_unit
+ * @property Unit $default_unit
  */
 class Ingredient extends Model
 {
@@ -34,6 +34,7 @@ class Ingredient extends Model
     public function cocktails(): BelongsToMany
     {
         return $this->belongsToMany(Cocktail::class)
+            ->using(CocktailIngredient::class)
             ->withPivot('amount', 'unit');
     }
 }

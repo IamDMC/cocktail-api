@@ -25,9 +25,10 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             CategorySeeder::class,
-            IngredientSeeder::class
-
-            // CocktailSeeder:class => später
+            IngredientSeeder::class,
+            CocktailSeeder::class,
+            RatingSeeder::class,
+            UserFavoriteSeeder::class
         ]);
     }
 }
