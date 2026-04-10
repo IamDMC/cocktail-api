@@ -8,27 +8,23 @@ use App\Http\Requests\Ingredient\IngredientStoreRequest;
 use App\Http\Requests\Ingredient\IngredientUpdateRequest;
 use App\Http\Resources\IngredientResource;
 use App\Models\Ingredient;
-use Illuminate\Http\Request;
+use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\QueryParam;
+use Knuckles\Scribe\Attributes\BodyParam;
+use Knuckles\Scribe\Attributes\UrlParam;
+use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 
+#[Group('Ingredients', description: 'Manage cocktail ingredients')]
 class IngredientController extends Controller
 {
-    /**
-     * List ingredients.
-     *
-     * @queryParam per_page int optional Number of items per page (pagination). Example: 10
-     * @queryParam limit int optional Limit the number of returned results. Used only if per_page is not set. Example: 5
-     *
-     * Behavior:
-     * - it prioritises per_page over limit
-     * - if neither per_page nor limit is provided, all categories are returned
-     *
-     */
+    #[QueryParam('per_page', 'int', 'Number of items per page (pagination)', required: false, example: 10)]
+    #[QueryParam('limit', 'int', 'Limit results if per_page is not set', required: false, example: 5)]
     public function index(IngredientIndexRequest $request)
     {
         $query = Ingredient::query();
 
         if ($request->filled('per_page')){
-            $result = $query->paginate($request->integer('per_page',10));
+            $result = $query->paginate($request->integer('per_page', 10));
         } elseif ($request->filled('limit')){
             $result = $query->limit($request->integer('limit', 10))->get();
         } else {
@@ -38,29 +34,10 @@ class IngredientController extends Controller
         return IngredientResource::collection($result);
     }
 
-    /**
-     * Create an ingredient.
-     *
-     * @bodyParam name string required The name of the ingredient. Example: White rum
-     * @bodyParam description string required Description of the ingredient. Example: Light rum
-     * @bodyParam default_unit string required Default unit of the ingredient. Example: cl
-     *
-     * @response 201 {
-     *   "data": {
-     *     "id": 1,
-     *     "name": "White rum",
-     *     "description": "Light rum",
-     *     "default_unit": "cl",
-     *   }
-     * }
-     *
-     * @response 422 {
-     *   "message": "The given data was invalid.",
-     *   "errors": {
-     *     "name": ["The name field is required."]
-     *   }
-     * }
-     */
+    #[BodyParam('name', 'string', 'The name of the ingredient', example: 'White rum')]
+    #[BodyParam('description', 'string', 'Description of the ingredient', example: 'Light rum')]
+    #[BodyParam('default_unit', 'string', 'Default unit of the ingredient', example: 'cl')]
+    #[ResponseFromApiResource(IngredientResource::class, Ingredient::class, status: 201)]
     public function store(IngredientStoreRequest $request)
     {
         $ingredient = Ingredient::create($request->validated());
@@ -70,51 +47,18 @@ class IngredientController extends Controller
             ->setStatusCode(201);
     }
 
-    /**
-     * Show an ingredient.
-     *
-     * @urlParam category int required The ID of the ingredient. Example: 1
-     *
-     * @response 200 {
-     *   "data": {
-     *     "id": 1,
-     *     "name": "White rum",
-     *     "description": "Light rum"
-     *     "default_unit": "cl"
-     *   }
-     * }
-     *
-     * @response 404 {
-     *   "message": "No query results for model"
-     * }
-     */
+    #[UrlParam('ingredient', 'int', 'The ID of the ingredient', example: 1)]
+    #[ResponseFromApiResource(IngredientResource::class, Ingredient::class)]
     public function show(Ingredient $ingredient)
     {
         return new IngredientResource($ingredient);
     }
 
-    /**
-     * Update an ingredient.
-     *
-     * @urlParam ingredient int required The ID of the ingredient. Example: 1
-     *
-     * @bodyParam name string The name of the ingredient. Example: White rum
-     * @bodyParam description string optional Description of the ingredient. Example: Light rum
-     * @bodyParam default_unit string Default unit of the ingredient. Example: cl
-     *
-     * @response 200 {
-     *   "data": {
-     *     "id": 1,
-     *     "name": "White rum",
-     *     "description": "Light rum"
-     *     "description": "cl"
-     *   }
-     * }
-     *
-     * @response 422 {
-     *   "message": "The given data was invalid."
-     * }
-     */
+    #[UrlParam('ingredient', 'int', 'The ID of the ingredient', example: 1)]
+    #[BodyParam('name', 'string', 'The name of the ingredient', required: false, example: 'White rum')]
+    #[BodyParam('description', 'string', 'Description of the ingredient', required: false, example: 'Light rum')]
+    #[BodyParam('default_unit', 'string', 'Default unit of the ingredient', required: false, example: 'cl')]
+    #[ResponseFromApiResource(IngredientResource::class, Ingredient::class)]
     public function update(IngredientUpdateRequest $request, Ingredient $ingredient)
     {
         $ingredient->update($request->validated());
@@ -122,13 +66,7 @@ class IngredientController extends Controller
         return new IngredientResource($ingredient);
     }
 
-    /**
-     * Delete an ingredient.
-     *
-     * @urlParam category int required The ID of the ingredient. Example: 1
-     *
-     * @response 204
-     */
+    #[UrlParam('ingredient', 'int', 'The ID of the ingredient', example: 1)]
     public function destroy(Ingredient $ingredient)
     {
         $ingredient->delete();
