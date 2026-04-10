@@ -5,6 +5,7 @@ namespace Tests\Feature\Cocktail\Actions;
 use App\Actions\Cocktail\CreateCocktailAction;
 use App\Data\Cocktail\Create\CreateCocktailIngredientData;
 use App\Enums\Unit;
+use Illuminate\Database\QueryException;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Cocktail\CocktailTestCase;
@@ -110,7 +111,7 @@ class CreateCocktailActionTest extends CocktailTestCase
             )
         ];
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         app(CreateCocktailAction::class)->execute(
             $cocktailData,

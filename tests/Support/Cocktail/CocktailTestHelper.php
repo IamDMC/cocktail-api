@@ -16,16 +16,32 @@ use Illuminate\Database\Eloquent\Collection;
 
 trait CocktailTestHelper {
 
+    /**
+     * @param int $maxNrCategories
+     * @return Collection<int, Category>
+     */
     public function createCategories(int $maxNrCategories = 1): Collection
     {
         return Category::factory()->count($maxNrCategories)->create();
     }
 
+    /**
+     * @param int $maxNrIngredients
+     * @return Collection<int, Ingredient>
+     */
     public function createIngredients(int $maxNrIngredients = 1): Collection
     {
         return Ingredient::factory()->count($maxNrIngredients)->create();
     }
 
+    /**
+     * @param User $user
+     * @param string|null $defaultName
+     * @param bool $isPublic
+     * @param bool $description
+     * @param string|null $descriptionText
+     * @return CreateCocktailData
+     */
     public function makeCreateCocktailDto(
         User $user,
         ?string $defaultName = null,
@@ -55,6 +71,11 @@ trait CocktailTestHelper {
         );
     }
 
+    /**
+     * @param bool $isPublic
+     * @param bool $description
+     * @return UpdateCocktailData
+     */
     public function makeUpdateCocktailDto(bool $isPublic = true, bool $description = true): UpdateCocktailData
     {
         $data = Cocktail::factory()->make([
@@ -69,6 +90,11 @@ trait CocktailTestHelper {
         );
     }
 
+    /**
+     * @param int|null $nrSteps
+     * @param int $stepIncrement
+     * @return array<int, CreateCocktailStepData>
+     */
     public function makeCocktailStepDtoArray(?int $nrSteps = null, int $stepIncrement = 0): array
     {
         if(! $nrSteps) $nrSteps = rand(1,5);
@@ -92,26 +118,69 @@ trait CocktailTestHelper {
         return $stepsDto;
     }
 
-    public function makeIngredientDtoArray(?int $nrIngredients = null, bool $defaultUnit = true): array
+    /**
+     * @param int|null $nrIngredients
+     * @param bool $defaultUnit
+     * @param Collection<int, Ingredient>|null $ingredientsToBeUsed
+     * @return array<int, CreateCocktailIngredientData>
+     */
+    public function makeIngredientDtoArray(?int $nrIngredients = null, bool $defaultUnit = true, ?Collection $ingredientsToBeUsed = null): array
     {
-        $maxNrIngredients = max(1, Ingredient::query()->count());
-        if(! $nrIngredients) $nrIngredients = rand(1, $maxNrIngredients);
-
-        $ingredients = Ingredient::query()->limit($nrIngredients)->get();
-
         $ingredientsDto = [];
-        foreach ($ingredients as $ingredient){
-            $ingredientsDto[] = new CreateCocktailIngredientData(
-                ingredientId: $ingredient->id,
-                amount: (float) rand(1, 10),
-                defaultUnit:  $ingredient->default_unit,
-                overwriteUnit: $defaultUnit ? null : fake()->randomElement(Unit::cases())
-            );
+
+        // No ingredients collection passed
+        if (! $ingredientsToBeUsed){
+            $maxNrIngredients = max(1, Ingredient::query()->count());
+            if(! $nrIngredients) $nrIngredients = rand(1, $maxNrIngredients);
+
+            $ingredients = Ingredient::query()->limit($nrIngredients)->get();
+
+            foreach ($ingredients as $ingredient){
+                $ingredientsDto[] = new CreateCocktailIngredientData(
+                    ingredientId: $ingredient->id,
+                    amount: (float) rand(1, 10),
+                    defaultUnit:  $ingredient->default_unit,
+                    overwriteUnit: $defaultUnit ? null : fake()->randomElement(Unit::cases())
+                );
+            }
+
+            //dd($ingredientsDto);
+
+        }else{
+
+            foreach ($ingredientsToBeUsed as $ingredient){
+
+                $ingredientsDto[] = new CreateCocktailIngredientData(
+                    ingredientId: $ingredient->id,
+                    amount: (float) rand(1, 10),
+                    defaultUnit:  $ingredient->default_unit,
+                    overwriteUnit: $defaultUnit ? null : fake()->randomElement(Unit::cases())
+                );
+            }
         }
 
         return $ingredientsDto;
     }
 
+    /**
+     * @param User $user
+     * @param string|null $defaultCocktailName
+     * @param bool $isPublic
+     * @param bool $description
+     * @param string|null $descriptionText
+     * @param int|null $nrSteps
+     * @param int $stepIncrement
+     * @param int|null $nrIngredients
+     * @param bool $defaultUnit
+     * @param Collection<int, Ingredient>|null $ingredientsToBeUsed
+     * @param array<int, int> $categories
+     * @return array{
+     *     cocktailData: CreateCocktailData,
+     *     steps: array<int, CreateCocktailStepData>,
+     *     ingredients: array<int, CreateCocktailIngredientData>,
+     *     categories: array<int, int>
+     * }
+     */
     public function makeCocktail(
         // Cocktail data
         User $user,
@@ -127,6 +196,7 @@ trait CocktailTestHelper {
         // Ingredients data
         ?int $nrIngredients = null,
         bool $defaultUnit = true,
+        ?Collection $ingredientsToBeUsed = null,
 
         // Category IDs
         array $categories = []
@@ -135,11 +205,20 @@ trait CocktailTestHelper {
         return [
             'cocktailData' => $this->makeCreateCocktailDto($user, $defaultCocktailName, $isPublic, $description, $descriptionText),
             'steps' => $this->makeCocktailStepDtoArray($nrSteps, $stepIncrement),
-            'ingredients' => $this->makeIngredientDtoArray($nrIngredients, $defaultUnit),
+            'ingredients' => $this->makeIngredientDtoArray($nrIngredients, $defaultUnit, $ingredientsToBeUsed),
             'categories' => empty($categories) ? $this->categoryIds : $categories,
         ];
     }
 
+    /**
+     * @param array{
+     *     cocktailData: CreateCocktailData,
+     *     steps: array<int, CreateCocktailStepData>,
+     *     ingredients: array<int, CreateCocktailIngredientData>,
+     *     categories: array<int, int>
+     * } $cocktailData
+     * @return Cocktail
+     */
     public function createCocktail(
         array $cocktailData
     ): Cocktail
@@ -151,7 +230,7 @@ trait CocktailTestHelper {
 
         if (! $cocktail || empty($steps) || empty($ingredients) || empty($categories))
         {
-            throw new \DomainException('cocktail data ist not set correctly, use makeCocktail()');
+            throw new \DomainException('cocktail data is not set correctly, use makeCocktail()');
         }
 
         $cocktail = Cocktail::create([
@@ -182,6 +261,11 @@ trait CocktailTestHelper {
         return $cocktail->fresh()->load(['steps', 'categories', 'ingredients']);
     }
 
+    /**
+     * @param array<int, CreateCocktailStepData> $steps
+     * @param Cocktail $cocktail
+     * @return void
+     */
     public function assertCocktailSteps(array $steps, Cocktail $cocktail): void
     {
         $this->assertCount(count($steps), $cocktail->steps);
@@ -200,6 +284,11 @@ trait CocktailTestHelper {
         );
     }
 
+    /**
+     * @param array<int, CreateCocktailIngredientData> $ingredients
+     * @param Cocktail $cocktail
+     * @return void
+     */
     public function assertIngredients(array $ingredients, Cocktail $cocktail): void
     {
         $this->assertCount(count($ingredients), $cocktail->ingredients);
@@ -215,6 +304,11 @@ trait CocktailTestHelper {
         }
     }
 
+    /**
+     * @param array<int, int> $categories
+     * @param Cocktail $cocktail
+     * @return void
+     */
     public function assertCategories(array $categories, Cocktail $cocktail): void
     {
 
