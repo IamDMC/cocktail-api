@@ -17,3 +17,6 @@ Route::get('/units', \App\Http\Controllers\Api\UnitController::class);
 
 Route::post('/rating/cocktails/{cocktail}', [\App\Http\Controllers\Api\CocktailRatingController::class, 'store']);
 Route::put('/rating/cocktails/{cocktail}', [\App\Http\Controllers\Api\CocktailRatingController::class, 'update']);
+
+Route::post('/favorite/cocktails/{cocktail}', [\App\Http\Controllers\Api\CocktailFavoredByController::class, 'store']);
+Route::delete('/favorite/cocktails/{cocktail}', [\App\Http\Controllers\Api\CocktailFavoredByController::class, 'destroy']);
