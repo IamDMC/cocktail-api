@@ -14,3 +14,6 @@ Route::apiResource('/ingredients', \App\Http\Controllers\Api\IngredientControlle
 Route::apiResource('/cocktails', \App\Http\Controllers\Api\CocktailController::class);
 
 Route::get('/units', \App\Http\Controllers\Api\UnitController::class);
+
+Route::post('/rating/cocktails/{cocktail}', [\App\Http\Controllers\Api\CocktailRatingController::class, 'store']);
+Route::put('/rating/cocktails/{cocktail}', [\App\Http\Controllers\Api\CocktailRatingController::class, 'update']);
