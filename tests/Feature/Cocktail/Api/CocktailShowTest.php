@@ -1,9 +1,10 @@
 <?php
 
-namespace Cocktail\Api;
+namespace Tests\Feature\Cocktail\Api;
 
 use App\Models\Cocktail;
 use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Cocktail\CocktailTestCase;
@@ -27,10 +28,38 @@ class CocktailShowTest extends CocktailTestCase
 
         return $cocktails;
     }
+    #[Test, Group('cocktails'), Group('auth')]
+    public function it_is_protected_from_unauthorized_access(): void
+    {
+        $cocktails = $this->makeMultipleCocktails(8);
+
+        /** @var Cocktail $cocktail */
+        $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
+
+        $response = $this->getJson("/api/cocktails/{$cocktail->id}");
+
+        $response->assertUnauthorized();
+    }
+
+    #[Test, Group('cocktails'), Group('auth')]
+    public function it_requires_verified_user(): void
+    {
+        $user = User::factory()->unverified()->create();
+        Sanctum::actingAs($user);
+
+        Cocktail::factory()->create([
+            'user_id' => $user->id
+        ]);
+
+        $response = $this->getJson("/api/cocktails/1");
+
+        $response->assertForbidden();
+    }
 
     #[Test, Group('cocktails')]
     public function it_shows_cocktail(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         /** @var Cocktail $cocktail */
@@ -52,6 +81,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_returns_404_if_cocktail_not_found(): void
     {
+        Sanctum::actingAs($this->user);
         $this->makeMultipleCocktails(2);
 
         $response = $this->getJson("/api/cocktails/999"); // Invalid data
@@ -62,6 +92,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_user(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
@@ -84,6 +115,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_categories(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
@@ -108,6 +140,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_steps(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
@@ -132,6 +165,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_ingredients(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
@@ -156,6 +190,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_ratings(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
@@ -193,6 +228,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_favored_by(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
@@ -221,6 +257,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_include_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
@@ -233,6 +270,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_include_to_be_an_array_of_strings(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];
@@ -245,6 +283,7 @@ class CocktailShowTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_include_to_be_an_array_of_strings_with_allowed_relation_ships(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktails = $this->makeMultipleCocktails(8);
 
         $cocktail = $cocktails[rand(0, count($cocktails) -1)]['cocktail'];

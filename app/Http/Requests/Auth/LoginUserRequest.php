@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Category;
+namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class CategoryRequest extends FormRequest
+class LoginUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,16 +23,8 @@ class CategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:4', 'max:60'],
-            'description' => ['required', 'string', 'min:4', 'max:255']
-        ];
-    }
-
-    public function attributes(): array
-    {
-        return [
-            'name' => 'Name',
-            'description' => 'Beschreibung',
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'password' => ['required'],
         ];
     }
 }

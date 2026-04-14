@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Ingredient;
+namespace App\Http\Requests\Category;
 
-use App\Enums\Unit;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
 
-class IngredientStoreRequest extends FormRequest
+class CategoryStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +23,16 @@ class IngredientStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:4', 'max:60', 'unique:ingredients,name'],
-            'description' => ['nullable', 'string', 'min:4', 'max:255'],
-            'default_unit' => ['required', new Enum(Unit::class)]
+            'name' => ['required', 'string', 'min:4', 'max:60', 'unique:categories,name'],
+            'description' => ['required', 'string', 'min:4', 'max:255']
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'name' => 'Name',
+            'description' => 'Beschreibung',
         ];
     }
 }

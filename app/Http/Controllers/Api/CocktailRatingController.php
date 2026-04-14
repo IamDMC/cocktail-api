@@ -32,8 +32,7 @@ class CocktailRatingController extends Controller
     public function store(CocktailRatingRequest $request, Cocktail $cocktail)
     {
         /** @var \App\Models\User $user */
-        //$user = auth()->user();
-        $user = User::query()->first();
+        $user = $request->user();
 
         $ratingDto = new CreateRatingData(
             rating: $request->integer('rating', 1),
@@ -58,8 +57,7 @@ class CocktailRatingController extends Controller
     public function update(CocktailRatingRequest $request, Cocktail $cocktail)
     {
         /** @var \App\Models\User $user */
-        //$user = auth()->user();
-        $user = User::query()->first();
+        $user = $request->user();
 
         $ratingDto = new CreateRatingData(
             rating: $request->integer('rating', 1),

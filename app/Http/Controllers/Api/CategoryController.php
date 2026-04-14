@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Category\CategoryIndexRequest;
-use App\Http\Requests\Category\CategoryRequest;
+use App\Http\Requests\Category\CategoryStoreRequest;
+use App\Http\Requests\Category\CategoryUpdateRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Knuckles\Scribe\Attributes\Group;
@@ -36,7 +37,7 @@ class CategoryController extends Controller
     #[BodyParam('name', 'string', 'The name of the category', example: 'Cocktails')]
     #[BodyParam('description', 'string', 'Description of the category', example: 'Alcoholic drinks')]
     #[ResponseFromApiResource(CategoryResource::class, Category::class, status: 201)]
-    public function store(CategoryRequest $request)
+    public function store(CategoryStoreRequest $request)
     {
         $category = Category::create($request->validated());
 
@@ -56,7 +57,7 @@ class CategoryController extends Controller
     #[BodyParam('name', 'string', 'The name of the category', required: false, example: 'Cocktails')]
     #[BodyParam('description', 'string', 'Description of the category', required: false, example: 'Alcoholic drinks')]
     #[ResponseFromApiResource(CategoryResource::class, Category::class)]
-    public function update(CategoryRequest $request, Category $category)
+    public function update(CategoryUpdateRequest $request, Category $category)
     {
         $category->update($request->validated());
 

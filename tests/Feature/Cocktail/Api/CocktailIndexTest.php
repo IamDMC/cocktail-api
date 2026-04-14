@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Cocktail;
 use App\Models\Ingredient;
 use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Cocktail\CocktailTestCase;
@@ -24,9 +25,30 @@ class CocktailIndexTest extends CocktailTestCase
         return $cocktails;
     }
 
+    #[Test, Group('cocktails'), Group('auth')]
+    public function it_is_protected_from_unauthorized_access(): void
+    {
+        $response = $this->getJson('/api/cocktails');
+
+        $response->assertUnauthorized();
+    }
+
+    #[Test, Group('cocktails'), Group('auth')]
+    public function it_requires_verified_user(): void
+    {
+        $user = User::factory()->unverified()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson('/api/cocktails');
+
+        $response->assertForbidden();
+    }
+
     #[Test, Group('cocktails')]
     public function it_lists_all_cocktails(): void
     {
+        Sanctum::actingAs($this->user);
+
         $cocktails = $this->makeMultipleCocktails(5);
 
         $response = $this->getJson('/api/cocktails');
@@ -38,6 +60,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_lists_paginated_cocktails(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(5);
 
         $response = $this->getJson('/api/cocktails?per_page=2');
@@ -49,6 +73,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_limits_cocktails(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(5);
 
         $response = $this->getJson('/api/cocktails?limit=2');
@@ -60,6 +86,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_prioritises_per_page_over_limit(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(5);
 
         $response = $this->getJson('/api/cocktails?per_page=1&limit=2');
@@ -71,6 +99,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_limits_10_results_if_no_url_parameter_given(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(20);
 
         $response = $this->getJson('/api/cocktails');
@@ -82,6 +112,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_applies_search(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(10);
 
         $cocktailData = $this->makeCocktail($this->user, defaultCocktailName: 'test-123-abc');
@@ -96,6 +128,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_applies_public_scope(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $cocktailData = $this->makeCocktail($this->user, defaultCocktailName: 'test-123-abc', isPublic: false);
@@ -111,6 +145,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_user(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?include[]=user');
@@ -136,6 +172,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_categories(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?include[]=categories');
@@ -162,6 +200,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_steps(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?include[]=steps');
@@ -188,6 +228,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_ingredients(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?include[]=ingredients');
@@ -214,6 +256,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_ratings(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $user = User::factory()->create();
@@ -258,6 +302,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_includes_favored_by(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $user = User::factory()->create();
@@ -290,6 +336,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_include_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?include=user');  // Invalid data
@@ -300,6 +348,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_include_to_be_an_array_of_strings(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?include[]=1');       // Invalid data
@@ -310,6 +360,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_include_to_be_an_array_of_strings_with_allowed_relation_ships(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?include[]=test');        // Invalid data
@@ -320,6 +372,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_filters_categories(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(10);
 
         $categories = Category::factory()->count(3)->create();
@@ -353,6 +407,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_filters_ingredients(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(10);
 
         $ingredients = Ingredient::factory()->count(3)->create();
@@ -386,6 +442,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_filter_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?filter=test');   // Invalid data
@@ -396,6 +454,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_filter_name_and_values_are_required_if_filter_is_applied(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $response = $this->getJson('/api/cocktails?filter[]');  // Invalid data
@@ -409,6 +469,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_filter_name_to_be_string(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $params = [
@@ -428,6 +490,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_filter_name_to_be_an_array_of_available_filter_strings(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $params = [
@@ -447,6 +511,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_filter_value_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $params = [
@@ -466,6 +532,8 @@ class CocktailIndexTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_filter_value_to_be_an_array_of_integers(): void
     {
+        Sanctum::actingAs($this->user);
+
         $this->makeMultipleCocktails(8);
 
         $params = [

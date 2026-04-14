@@ -1,6 +1,6 @@
 <?php
 
-namespace Cocktail\Actions;
+namespace Tests\Feature\Cocktail\Actions;
 
 use App\Actions\Cocktail\RateCocktailAction;
 use App\Data\Rating\CreateRatingData;

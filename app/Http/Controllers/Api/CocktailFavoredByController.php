@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Actions\Cocktail\ToggleFavoriteCocktailAction;
 use App\Http\Controllers\Controller;
 use App\Models\Cocktail;
+use App\Models\User;
+
+use Illuminate\Http\Request;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\Response;
 use Knuckles\Scribe\Attributes\UrlParam;
@@ -15,9 +18,14 @@ class CocktailFavoredByController extends Controller
     #[UrlParam('cocktail', 'int', 'The ID of the cocktail', example: 1)]
     #[Response(status: 204, description: 'Cocktail added to favorites')]
     #[Response(status: 404, description: 'Cocktail not found')]
-    public function store(Cocktail $cocktail)
+    public function store(Request $request, Cocktail $cocktail)
     {
-        app(ToggleFavoriteCocktailAction::class)->add($cocktail);
+        /**
+         * @var User $user
+         */
+        $user = $request->user();
+
+        app(ToggleFavoriteCocktailAction::class)->add($cocktail, $user);
 
         return response()->noContent();
     }
@@ -25,9 +33,14 @@ class CocktailFavoredByController extends Controller
     #[UrlParam('cocktail', 'int', 'The ID of the cocktail', example: 1)]
     #[Response(status: 204, description: 'Cocktail removed from favorites')]
     #[Response(status: 404, description: 'Cocktail not found')]
-    public function destroy(Cocktail $cocktail)
+    public function destroy(Request $request, Cocktail $cocktail)
     {
-        app(ToggleFavoriteCocktailAction::class)->remove($cocktail);
+        /**
+         * @var User $user
+         */
+        $user = $request->user();
+
+        app(ToggleFavoriteCocktailAction::class)->remove($cocktail, $user);
 
         return response()->noContent();
     }

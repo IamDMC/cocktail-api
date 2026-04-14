@@ -1,6 +1,6 @@
 <?php
 
-namespace Cocktail\Actions;
+namespace Tests\Feature\Cocktail\Actions;
 
 use App\Actions\Cocktail\ToggleFavoriteCocktailAction;
 use App\Models\Cocktail;
@@ -23,7 +23,7 @@ class ToggleFavoriteCocktailActionTest extends TestCase
             'user_id' => $user->id
         ]);
 
-        app(ToggleFavoriteCocktailAction::class)->add($cocktail);
+        app(ToggleFavoriteCocktailAction::class)->add($cocktail, $user);
 
         $this->assertDatabaseCount('user_cocktail', 1);
 
@@ -44,7 +44,7 @@ class ToggleFavoriteCocktailActionTest extends TestCase
 
         $cocktail->favoredBy()->attach([$user->id]);
 
-        app(ToggleFavoriteCocktailAction::class)->remove($cocktail);
+        app(ToggleFavoriteCocktailAction::class)->remove($cocktail, $user);
 
         $this->assertDatabaseCount('user_cocktail', 0);
     }
