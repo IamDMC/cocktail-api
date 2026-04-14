@@ -11,12 +11,8 @@ class ToggleFavoriteCocktailAction
      * @param Cocktail $cocktail
      * @return void
      */
-    public function add(Cocktail $cocktail): void
+    public function add(Cocktail $cocktail, User $user): void
     {
-        /** @var User $user */
-        //$user = auth()->user();
-        $user = User::query()->first();
-
         $cocktail->favoredBy()->attach([$user->id]);
     }
 
@@ -24,12 +20,8 @@ class ToggleFavoriteCocktailAction
      * @param Cocktail $cocktail
      * @return void
      */
-    public function remove(Cocktail $cocktail): void
+    public function remove(Cocktail $cocktail, User $user): void
     {
-        /** @var User $user */
-        //$user = auth()->user();
-        $user = User::query()->first();
-
         $cocktail->favoredBy()->detach([$user->id]);
     }
 }

@@ -5,6 +5,7 @@ namespace Tests\Feature\Cocktail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\Sanctum;
 use Tests\Support\Cocktail\CocktailTestHelper;
 use Tests\TestCase;
 
@@ -26,6 +27,8 @@ class CocktailTestCase extends TestCase
             'email' => 'test@test.at',
             'password' => Hash::make('password')
         ]);
+
+        //Sanctum::actingAs($this->user);
 
         $categories = $this->createCategories(self::MAX_NR_CATEGORIES);
         $this->categoryIds = $categories->modelKeys();

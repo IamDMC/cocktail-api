@@ -31,7 +31,7 @@ class CocktailDtoHelper
             name: $data['name'],
             description: $data['description'],
             isPublic: $data['isPublic'],
-            userId: User::query()->first()->id          // currently hard coded user, replace with actual auth user, after implementing jwt
+            userId: $request->user()->id
         );
 
         $stepsDto = self::getStepsDto($data['steps']);
