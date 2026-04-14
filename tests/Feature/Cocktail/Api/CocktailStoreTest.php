@@ -1,6 +1,6 @@
 <?php
 
-namespace Cocktail\Api;
+namespace Tests\Feature\Cocktail\Api;
 
 use App\Data\Cocktail\Create\CreateCocktailData;
 use App\Data\Cocktail\Create\CreateCocktailIngredientData;
@@ -8,6 +8,8 @@ use App\Data\Cocktail\Create\CreateCocktailStepData;
 use App\Models\Category;
 use App\Models\Cocktail;
 use App\Models\Ingredient;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Cocktail\CocktailTestCase;
@@ -52,9 +54,34 @@ class CocktailStoreTest extends CocktailTestCase
         ];
     }
 
+    #[Test, Group('cocktails'), Group('auth')]
+    public function it_is_protected_from_unauthorized_access(): void
+    {
+        $cocktailData = $this->makeCreateCocktailDto($this->user);
+        $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
+        $ingredients = $this->makeIngredientDtoArray();
+        $categories = Category::factory()->count(3)->create();
+
+        $data = $this->createParams($cocktailData, $steps, $ingredients, $categories->modelKeys());
+
+        $this->postJson('/api/cocktails', $data)->assertUnauthorized();
+    }
+
+    #[Test, Group('cocktails'), Group('auth')]
+    public function it_requires_verified_user(): void
+    {
+        $user = User::factory()->unverified()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/cocktails', []);
+
+        $response->assertForbidden();
+    }
+
     #[Test, Group('cocktails')]
     public function it_creates_cocktail_correctly(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -76,6 +103,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_name(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -93,6 +121,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_string_name(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -110,6 +139,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_min_string_length_name(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -127,6 +157,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_max_string_length_name(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -144,6 +175,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_unique_cocktail_name(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCocktail($this->user, defaultCocktailName: 'test-123-abc');
         $this->createCocktail($cocktailData);
 
@@ -164,6 +196,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_creates_cocktail_without_description(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user, description: false);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -179,6 +212,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_string_description(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -196,6 +230,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_min_string_length_description(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -213,6 +248,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_max_string_length_description(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -230,6 +266,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_boolean_is_public(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -247,6 +284,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_steps(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -264,6 +302,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_steps_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -281,6 +320,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_steps_min_array_size(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -298,6 +338,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_steps_max_array_size(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:6, stepIncrement: 1);     // Invalid data
         $ingredients = $this->makeIngredientDtoArray();
@@ -313,6 +354,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_step_number(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -330,6 +372,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_number_to_be_an_integer(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -347,6 +390,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_number_min_value(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -364,6 +408,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_number_max_value(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -381,6 +426,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_number_distinct_value(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:2, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -399,6 +445,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_step_instruction(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -416,6 +463,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_instruction_to_be_string(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -433,6 +481,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_instruction_min_string_length(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -451,6 +500,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_instruction_max_string_length(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -468,6 +518,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_ingredients(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -486,6 +537,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredients_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -504,6 +556,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredients_min_array_size(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray();
@@ -522,6 +575,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredients_max_array_size(): void
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->create();
 
         $cocktailData = $this->makeCreateCocktailDto($this->user);
@@ -540,6 +594,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_ingredient_id(): void
     {
+        Sanctum::actingAs($this->user);
 
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
@@ -559,6 +614,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_id_to_be_an_integer(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -577,6 +633,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_id_to_be_distinct(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -600,6 +657,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_id_exists(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -623,6 +681,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_ingredient_amount(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -641,6 +700,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_amount_is_numeric(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -659,6 +719,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_amount_min_value(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -676,6 +737,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_amount_max_value(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -693,6 +755,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_creates_cocktail_without_ingredient_over_write_unit(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -711,6 +774,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_over_write_unit_to_be_of_type_unit_enum(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -729,6 +793,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_category_ids(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -747,6 +812,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -765,6 +831,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_min_array_size(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -783,6 +850,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_max_array_size(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -798,6 +866,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_to_be_distinct(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);
@@ -816,6 +885,7 @@ class CocktailStoreTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_exists(): void
     {
+        Sanctum::actingAs($this->user);
         $cocktailData = $this->makeCreateCocktailDto($this->user);
         $steps =  $this->makeCocktailStepDtoArray(nrSteps:1, stepIncrement: 1);
         $ingredients = $this->makeIngredientDtoArray(nrIngredients: 1);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Cocktail\Api;
+namespace Tests\Feature\Cocktail\Api;
 
 use App\Data\Cocktail\Create\CreateCocktailData;
 use App\Data\Cocktail\Create\CreateCocktailIngredientData;
@@ -8,6 +8,8 @@ use App\Data\Cocktail\Create\CreateCocktailStepData;
 use App\Models\Category;
 use App\Models\Cocktail;
 use App\Models\Ingredient;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Cocktail\CocktailTestCase;
@@ -52,9 +54,45 @@ class CocktailUpdateTest extends CocktailTestCase
         ];
     }
 
+    #[Test, Group('cocktails'), Group('auth')]
+    public function it_is_protected_from_unauthorized_access(): void
+    {
+        $referenceCocktailData = $this->makeCocktail(
+            user: $this->user,
+            defaultCocktailName: 'test-abc-123'
+        );
+        $referenceCocktail = $this->createCocktail($referenceCocktailData);
+
+        $cocktailData = $this->makeCreateCocktailDto($this->user, defaultName: 'test-efg-456');
+        $steps =  $this->makeCocktailStepDtoArray(stepIncrement: 1);
+        $ingredients = $this->makeIngredientDtoArray();
+        $categories = Category::factory()->count(3)->create();
+
+        $data = $this->createParams($cocktailData, $steps, $ingredients, $categories->modelKeys());
+
+        $this->putJson("/api/cocktails/{$referenceCocktail->id}", $data)
+            ->assertUnauthorized();
+    }
+
+    #[Test, Group('cocktails'), Group('auth')]
+    public function it_requires_verified_user(): void
+    {
+        $user = User::factory()->unverified()->create();
+        Sanctum::actingAs($user);
+
+        Cocktail::factory()->create([
+            'user_id' => $user->id
+        ]);
+
+        $response = $this->putJson('/api/cocktails/1', []);
+
+        $response->assertForbidden();
+    }
+
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_name(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(
             user: $this->user,
             defaultCocktailName: 'test-abc-123'
@@ -85,6 +123,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_and_ignores_unique_name_validation_for_same_cocktail(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(
             user: $this->user,
             defaultCocktailName: 'test-abc-123'
@@ -115,6 +154,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_description(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(
             user: $this->user,
             description: true,
@@ -146,6 +186,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_visibility_to_public(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(
             user: $this->user,
             isPublic: false
@@ -176,6 +217,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_visibility_to_private(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(
             user: $this->user,
             isPublic: true
@@ -206,6 +248,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_steps(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(
             user: $this->user,
             nrSteps: 1
@@ -234,6 +277,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_ingredients(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(
             user: $this->user,
             nrIngredients: 1
@@ -262,6 +306,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_categories(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(
             user: $this->user,
             categories: Category::factory()->count(2)->create()->modelKeys()
@@ -290,6 +335,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_cocktail_name_to_be_unique(): void
     {
+        Sanctum::actingAs($this->user);
         $this->createCocktail(
             $this->makeCocktail(
                 user: $this->user,
@@ -329,6 +375,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_cocktail_name_to_be_string(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -358,6 +405,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_cocktail_name_min_length(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -387,6 +436,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_cocktail_name_max_length(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -416,6 +467,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_description_to_be_string(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -445,6 +498,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_description_min_length(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -474,6 +529,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_description_max_length(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -503,6 +560,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_boolean_is_public(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -532,6 +591,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_steps(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -561,6 +622,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_steps_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -590,6 +653,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_steps_min_array_size(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -619,6 +684,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_steps_max_array_size(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -648,6 +715,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_step_number(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -677,6 +746,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_number_to_be_an_integer(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -706,6 +777,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_number_min_value(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -735,6 +808,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_number_max_value(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -764,6 +839,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_number_distinct_value(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -794,6 +871,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_step_instruction(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -823,6 +902,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_instruction_to_be_string(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -852,6 +933,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_instruction_min_string_length(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -881,6 +964,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_step_instruction_max_string_length(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -910,6 +995,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_ingredients(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -939,6 +1026,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredients_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -968,6 +1057,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredients_min_array_size(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -997,6 +1088,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredients_max_array_size(): void
     {
+        Sanctum::actingAs($this->user);
+
         Ingredient::factory()->create();
 
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
@@ -1028,6 +1121,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_ingredient_id(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1057,6 +1152,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_id_to_be_an_integer(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1086,6 +1182,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_id_to_be_distinct(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1120,6 +1218,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_id_exists(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1154,6 +1254,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_ingredient_amount(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1183,6 +1285,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_amount_is_numeric(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1212,6 +1316,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_amount_min_value(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1241,6 +1347,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_amount_max_value(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1270,6 +1378,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_updates_cocktail_without_ingredient_over_write_unit(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1299,6 +1409,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_ingredient_over_write_unit_to_be_of_type_unit_enum(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1328,6 +1439,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_required_category_ids(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1357,6 +1469,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_to_be_an_array(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1386,6 +1499,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_min_array_size(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1415,6 +1529,8 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_max_array_size(): void
     {
+        Sanctum::actingAs($this->user);
+
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1444,6 +1560,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_to_be_distinct(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 
@@ -1473,6 +1590,7 @@ class CocktailUpdateTest extends CocktailTestCase
     #[Test, Group('cocktails')]
     public function it_validates_category_ids_exists(): void
     {
+        Sanctum::actingAs($this->user);
         $referenceCocktailData = $this->makeCocktail(user: $this->user, stepIncrement: 1);
         $referenceCocktail = $this->createCocktail($referenceCocktailData);
 

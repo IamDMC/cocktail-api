@@ -1,21 +1,65 @@
 <?php
 
-namespace Api;
+namespace Tests\Feature\Api;
 
 use App\Enums\Unit;
 use App\Models\Ingredient;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Knuckles\Scribe\Attributes\Group;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\Sanctum;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class IngredientTest extends TestCase
 {
     use RefreshDatabase;
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = User::factory()->create([
+            'name' => 'test',
+            'email' => 'test@test.at',
+            'password' => Hash::make('password')
+        ]);
+    }
+
+    #[Test, Group('ingredients'), Group('auth')]
+    public function it_is_protected_from_unauthorized_access(): void
+    {
+        $this->getJson('/api/ingredients')->assertUnauthorized();
+
+        $this->postJson('/api/ingredients', [])->assertUnauthorized();
+
+        $this->putJson('/api/ingredients/1', [])->assertUnauthorized();
+
+        $this->deleteJson('/api/ingredients/1')->assertUnauthorized();
+    }
+    #[Test, Group('ingredients'), Group('auth')]
+    public function it_requires_verified_user(): void
+    {
+        $user = User::factory()->unverified()->create();
+        Sanctum::actingAs($user);
+
+        Ingredient::factory()->create();
+
+        $this->getJson('/api/ingredients')->assertForbidden();
+
+        $this->postJson('/api/ingredients', [])->assertForbidden();
+
+        $this->putJson('/api/ingredients/1', [])->assertForbidden();
+
+        $this->deleteJson('/api/ingredients/1')->assertForbidden();
+    }
 
     #[Test, Group('ingredients')]
     public function index_lists_all_ingredients()
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->count(3)->create();
 
         $response = $this->getJson('/api/ingredients');
@@ -27,6 +71,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function index_lists_paginated_ingredients(): void
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->count(3)->create();
 
         $response = $this->getJson('/api/ingredients?per_page=2');
@@ -38,6 +83,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function index_limits_ingredients(): void
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->count(3)->create();
 
         $response = $this->getJson('/api/ingredients?limit=2');
@@ -49,6 +95,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function index_prioritises_per_page_over_limit(): void
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->count(3)->create();
 
         $response = $this->getJson('/api/ingredients?limit=3&per_page=2');
@@ -60,6 +107,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function index_prioritises_limit_over_default(): void
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->count(3)->create();
 
         $response = $this->getJson('/api/ingredients?limit=3&per_page=2');
@@ -71,6 +119,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_stores_ingredient_correctly(): void
     {
+        Sanctum::actingAs($this->user);
         $data = Ingredient::factory()->make([
             'name' => 'white rum',
             'description' => 'Light rum',
@@ -88,6 +137,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_does_not_store_ingredient_with_empty_data(): void
     {
+        Sanctum::actingAs($this->user);
         $response = $this->postJson('/api/ingredients', []);
 
         $response->assertStatus(422)
@@ -99,6 +149,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_does_not_store_ingredient_with_invalid_data():void
     {
+        Sanctum::actingAs($this->user);
         $invalidData = [
             'name' => 1,
             'default_unit' => Unit::CL
@@ -115,6 +166,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_does_not_store_ingredient_if_name_is_not_unique():void
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->create([
             'name' => 'white rum',
             'description' => 'Light rum',
@@ -137,6 +189,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_shows_single_ingredient_correctly(): void
     {
+        Sanctum::actingAs($this->user);
         $ingredient = Ingredient::factory()->create([
             'name' => 'white rum',
             'description' => 'light rum',
@@ -156,6 +209,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_returns_404_if_single_ingredient_not_found(): void
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->create([
             'name' => 'white rum',
             'description' => 'light rum',
@@ -170,6 +224,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_updates_ingredient_correctly(): void
     {
+        Sanctum::actingAs($this->user);
         $ingredient = Ingredient::factory()->create([
             'name' => 'dark rum',
             'description' => 'light rum',
@@ -198,6 +253,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_does_not_update_ingredient_with_empty_data(): void
     {
+        Sanctum::actingAs($this->user);
         $ingredient = Ingredient::factory()->create([
             'name' => 'white rum',
             'description' => 'light rum',
@@ -219,6 +275,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_does_not_update_ingredient_with_invalid_data(): void
     {
+        Sanctum::actingAs($this->user);
         $ingredient = Ingredient::factory()->create([
             'name' => 'white rum',
             'description' => 'light rum',
@@ -246,6 +303,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_ignores_unique_validation_rule_on_update(): void
     {
+        Sanctum::actingAs($this->user);
         $ingredient = Ingredient::factory()->create([
             'name' => 'dark rum',
             'description' => 'light rum',
@@ -275,6 +333,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_deletes_ingredient_correctly(): void
     {
+        Sanctum::actingAs($this->user);
         $ingredient = Ingredient::factory()->create([
             'name' => 'white rum',
             'description' => 'light rum',
@@ -291,6 +350,7 @@ class IngredientTest extends TestCase
     #[Test, Group('ingredients')]
     public function it_does_not_delete_ingredient_if_not_found(): void
     {
+        Sanctum::actingAs($this->user);
         Ingredient::factory()->create([
             'name' => 'white rum',
             'description' => 'light rum',
