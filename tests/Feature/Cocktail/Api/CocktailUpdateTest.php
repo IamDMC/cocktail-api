@@ -90,6 +90,31 @@ class CocktailUpdateTest extends CocktailTestCase
     }
 
     #[Test, Group('cocktails')]
+    public function it_only_allows_update_on_user_owned_cocktail(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $user = User::factory()->create();
+
+        $referenceCocktailData = $this->makeCocktail(
+            user: $user,
+            nrSteps: 1
+        );
+
+        $referenceCocktail = $this->createCocktail($referenceCocktailData);
+
+        $cocktailData = $this->makeCreateCocktailDto($user, isPublic: false);
+        $steps =  $this->makeCocktailStepDtoArray(nrSteps: 5, stepIncrement: 1);
+        $ingredients = $this->makeIngredientDtoArray();
+        $categories = Category::factory()->count(3)->create();
+
+        $data = $this->createParams($cocktailData, $steps, $ingredients, $categories->modelKeys());
+
+        $this->putJson("/api/cocktails/{$referenceCocktail->id}", $data)
+            ->assertForbidden();
+    }
+
+    #[Test, Group('cocktails')]
     public function it_updates_cocktail_name(): void
     {
         Sanctum::actingAs($this->user);
@@ -336,6 +361,7 @@ class CocktailUpdateTest extends CocktailTestCase
     public function it_validates_cocktail_name_to_be_unique(): void
     {
         Sanctum::actingAs($this->user);
+
         $this->createCocktail(
             $this->makeCocktail(
                 user: $this->user,
@@ -358,8 +384,7 @@ class CocktailUpdateTest extends CocktailTestCase
 
         $data = $this->createParams($cocktailData, $steps, $ingredients, $categories->modelKeys());
 
-        $this->putJson("/api/cocktails/{$referenceCocktail->id}", $data)
-            ->assertJsonValidationErrors(['name']);
+        $this->putJson("/api/cocktails/{$referenceCocktail->id}", $data)->assertJsonValidationErrors(['name']);
 
         $this->assertDatabaseCount('cocktails', 2);
 

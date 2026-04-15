@@ -126,13 +126,15 @@ class CocktailIndexTest extends CocktailTestCase
     }
 
     #[Test, Group('cocktails')]
-    public function it_applies_public_scope(): void
+    public function it_applies_public_or_owned_scope(): void
     {
         Sanctum::actingAs($this->user);
 
         $this->makeMultipleCocktails(8);
 
-        $cocktailData = $this->makeCocktail($this->user, defaultCocktailName: 'test-123-abc', isPublic: false);
+        $user = User::factory()->create();
+
+        $cocktailData = $this->makeCocktail($user, defaultCocktailName: 'test-123-abc', isPublic: false);
         $this->createCocktail($cocktailData);
 
         $response = $this->getJson('/api/cocktails');
