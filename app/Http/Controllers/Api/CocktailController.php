@@ -13,6 +13,8 @@ use App\Http\Requests\Cocktail\CocktailUpdateRequest;
 use App\Http\Resources\Cocktail\CocktailResource;
 use App\Models\Cocktail;
 use App\ReadModels\Cocktail\CocktailQuery;
+use Illuminate\Auth\Access\Gate;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Knuckles\Scribe\Attributes\BodyParam;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\QueryParam;
@@ -21,6 +23,7 @@ use Knuckles\Scribe\Attributes\UrlParam;
 #[Group('Cocktails', description: 'Manage cocktails')]
 class CocktailController extends Controller
 {
+    use AuthorizesRequests;
 
     #[QueryParam('include', 'array', 'Relations to include (user, categories, steps, ingredients, ratings.user, favoredBy)', required: false)]
     #[QueryParam('search', 'string', 'Search term for name/description', required: false)]
@@ -32,12 +35,13 @@ class CocktailController extends Controller
         $relationsToBeLoaded = $request->validated('include', []);
         $search = $request->validated('search', '');
         $filter = $request->validated('filter', []);
+        $user = $request->user();
 
         $query = new CocktailQuery();
         if ($request->filled('per_page')){
-            $result = $query->paginate($relationsToBeLoaded, $search, $filter, $request->integer('per_page', 10));
+            $result = $query->paginate($relationsToBeLoaded, $search, $filter, $request->integer('per_page', 10), $user);
         } else {
-            $result = $query->limit($relationsToBeLoaded, $search, $filter, $request->integer('limit', 10));
+            $result = $query->limit($relationsToBeLoaded, $search, $filter, $request->integer('limit', 10), $user);
         }
 
         return CocktailResource::collection($result);
@@ -103,6 +107,8 @@ class CocktailController extends Controller
     #[UrlParam('cocktail', 'int', 'The ID of the cocktail', example: 1)]
     public function destroy(Cocktail $cocktail)
     {
+        $this->authorize('delete', $cocktail);
+
         $cocktail->delete();
 
         return response()->noContent();

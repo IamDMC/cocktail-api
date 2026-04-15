@@ -8,6 +8,7 @@ use App\Http\Requests\Category\CategoryStoreRequest;
 use App\Http\Requests\Category\CategoryUpdateRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\QueryParam;
 use Knuckles\Scribe\Attributes\BodyParam;
@@ -17,6 +18,8 @@ use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 #[Group('Categories', description: 'Manage cocktail categories')]
 class CategoryController extends Controller
 {
+    use AuthorizesRequests;
+
     #[QueryParam('per_page', 'int', 'Number of items per page (pagination)', required: false, example: 10)]
     #[QueryParam('limit', 'int', 'Limit results if per_page is not set', required: false, example: 5)]
     public function index(CategoryIndexRequest $request)
@@ -67,6 +70,8 @@ class CategoryController extends Controller
     #[UrlParam('category', 'int', 'The ID of the category', example: 1)]
     public function destroy(Category $category)
     {
+        $this->authorize('delete', $category);
+
         $category->delete();
 
         return response()->noContent();

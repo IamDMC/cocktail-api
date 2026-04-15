@@ -19,7 +19,11 @@ class IngredientUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        if ($this->user()->can('create', Ingredient::class)){
+            return true;
+        }
+
+        return false;
     }
 
     /**

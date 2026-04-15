@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Ingredient;
 
 use App\Enums\Unit;
+use App\Models\Ingredient;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
@@ -14,7 +15,11 @@ class IngredientStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        if ($this->user()->can('create', Ingredient::class)){
+            return true;
+        }
+
+        return false;
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Http\Requests\Ingredient\IngredientStoreRequest;
 use App\Http\Requests\Ingredient\IngredientUpdateRequest;
 use App\Http\Resources\IngredientResource;
 use App\Models\Ingredient;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\QueryParam;
 use Knuckles\Scribe\Attributes\BodyParam;
@@ -17,6 +18,8 @@ use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 #[Group('Ingredients', description: 'Manage cocktail ingredients')]
 class IngredientController extends Controller
 {
+    use AuthorizesRequests;
+
     #[QueryParam('per_page', 'int', 'Number of items per page (pagination)', required: false, example: 10)]
     #[QueryParam('limit', 'int', 'Limit results if per_page is not set', required: false, example: 5)]
     public function index(IngredientIndexRequest $request)
@@ -69,6 +72,8 @@ class IngredientController extends Controller
     #[UrlParam('ingredient', 'int', 'The ID of the ingredient', example: 1)]
     public function destroy(Ingredient $ingredient)
     {
+        $this->authorize('delete', $ingredient);
+
         $ingredient->delete();
 
         return response()->noContent();
