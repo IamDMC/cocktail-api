@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, User> $favoredBy
  *
  * @method static Builder|self public()
+ * @method static Builder|self publicOrOwned(User $user)
  */
 
 class Cocktail extends Model
@@ -108,7 +109,23 @@ class Cocktail extends Model
      */
     public function scopePublic(Builder $query): Builder
     {
-        return $query->where('is_public', true);
+        return $query->where('is_public', '=', 'true');
+    }
+
+    /**
+     * @param Builder $query
+     * @param User|null $user
+     * @return Builder
+     */
+    public function scopePublicOrOwned(Builder $query, ?User $user): Builder
+    {
+        return $query->where(function ($q) use ($user) {
+            $q->where('is_public', true);
+
+            if ($user) {
+                $q->orWhere('user_id', $user->id);
+            }
+        });
     }
 
     // *******************************************
