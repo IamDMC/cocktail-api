@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests\Category;
 
+use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-
+/**
+ * @property Category $category
+ */
 class CategoryStoreRequest extends FormRequest
 {
     /**
@@ -12,7 +15,11 @@ class CategoryStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        if ($this->user()->can('create', Category::class)){
+            return true;
+        }
+
+        return false;
     }
 
     /**

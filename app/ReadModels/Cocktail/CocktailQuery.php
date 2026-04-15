@@ -3,6 +3,7 @@
 namespace App\ReadModels\Cocktail;
 
 use App\Models\Cocktail;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -16,9 +17,9 @@ class CocktailQuery
      * @param int $per_page
      * @return LengthAwarePaginator
      */
-    public function paginate(array $relationsToBeLoaded, ?string $search, array $filters = [], int $per_page = 10): LengthAwarePaginator
+    public function paginate(array $relationsToBeLoaded, ?string $search, array $filters = [], int $per_page = 10, ?User $user = null): LengthAwarePaginator
     {
-        return $this->baseQuery($relationsToBeLoaded, $search, $filters)->paginate($per_page);
+        return $this->baseQuery($relationsToBeLoaded, $search, $filters, $user)->paginate($per_page);
     }
 
     /**
@@ -28,9 +29,9 @@ class CocktailQuery
      * @param int $limit
      * @return Collection<int, Cocktail>
      */
-    public function limit(array $relationsToBeLoaded, ?string $search, array $filters = [], int $limit = 10): Collection
+    public function limit(array $relationsToBeLoaded, ?string $search, array $filters = [], int $limit = 10, ?User $user = null): Collection
     {
-        return $this->baseQuery($relationsToBeLoaded, $search, $filters)->limit($limit)->get();
+        return $this->baseQuery($relationsToBeLoaded, $search, $filters, $user)->limit($limit)->get();
     }
 
     /**
@@ -39,9 +40,9 @@ class CocktailQuery
      * @param array<int, array{name: string, values: array<int>}> $filters
      * @return Builder
      */
-    private function baseQuery(array $relationsToBeLoaded, ?string $search, array $filters = []): Builder
+    private function baseQuery(array $relationsToBeLoaded, ?string $search, array $filters = [], ?User $user = null): Builder
     {
-        $query = Cocktail::public();
+        $query = Cocktail::publicOrOwned($user);
 
         // Searches through cocktail name and cocktail description
         if (! empty($search)){

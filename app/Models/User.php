@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Notifications\VerifyEmailNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,6 +20,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $name
  * @property string $email
  * @property string $password
+ * @property boolean $admin
  * @property Carbon|null $email_verified_at
  */
 class User extends Authenticatable implements MustVerifyEmail
@@ -57,6 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'admin' => 'boolean'
         ];
     }
 
@@ -85,6 +88,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function favoriteCocktails(): BelongsToMany
     {
         return $this->belongsToMany(Cocktail::class, 'user_cocktail');
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->admin == true;
     }
 
     /**

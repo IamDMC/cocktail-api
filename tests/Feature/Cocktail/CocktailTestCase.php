@@ -25,7 +25,8 @@ class CocktailTestCase extends TestCase
         $this->user = User::factory()->create([
             'name' => 'test',
             'email' => 'test@test.at',
-            'password' => Hash::make('password')
+            'password' => Hash::make('password'),
+            'email_verified_at' => now()
         ]);
 
         //Sanctum::actingAs($this->user);

@@ -37,6 +37,7 @@ class CocktailDestroyTest extends \Tests\Feature\Cocktail\CocktailTestCase
     public function it_deletes_cocktail(): void
     {
         $user = User::factory()->create();
+
         Sanctum::actingAs($user);
 
         Cocktail::factory()->create([
@@ -46,5 +47,22 @@ class CocktailDestroyTest extends \Tests\Feature\Cocktail\CocktailTestCase
         $response = $this->deleteJson('/api/cocktails/1');
 
         $response->assertNoContent();
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_only_allows_delete_on_user_owned_cocktail(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+
+        Sanctum::actingAs($userA);
+
+        Cocktail::factory()->create([
+            'user_id' => $userB->id
+        ]);
+
+        $response = $this->deleteJson('/api/cocktails/1');
+
+        $response->assertForbidden();
     }
 }

@@ -19,7 +19,11 @@ class CocktailUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        if ($this->user()->can('update', $this->cocktail)){
+            return true;
+        }
+
+        return false;
     }
 
     /**

@@ -14,12 +14,19 @@ use Tests\TestCase;
 class CategoryTest extends TestCase
 {
     use RefreshDatabase;
-    private User $user;
+    private User $adminUser, $regularUser;
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->user = User::factory()->create([
+        $this->adminUser = User::factory()->create([
+            'name' => 'admin-test',
+            'email' => 'admin.test@test.at',
+            'admin' => true,
+            'password' => Hash::make('password')
+        ]);
+
+        $this->regularUser = User::factory()->create([
             'name' => 'test',
             'email' => 'test@test.at',
             'password' => Hash::make('password')
@@ -58,7 +65,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function index_lists_all_categories(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->regularUser);
 
         Category::factory()->count(3)->create();
 
@@ -71,7 +78,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function index_lists_paginated_categories(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->regularUser);
         Category::factory()->count(3)->create();
 
         $response = $this->getJson('/api/categories?per_page=2');
@@ -83,7 +90,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function index_limits_categories(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->regularUser);
         Category::factory()->count(3)->create();
 
         $response = $this->getJson('/api/categories?limit=2');
@@ -95,7 +102,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function index_prioritises_per_page_over_limit(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->regularUser);
         Category::factory()->count(3)->create();
 
         $response = $this->getJson('/api/categories?limit=3&per_page=2');
@@ -107,7 +114,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function index_prioritises_limit_over_default(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->regularUser);
         Category::factory()->count(3)->create();
 
         $response = $this->getJson('/api/categories?limit=3&per_page=2');
@@ -119,7 +126,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_stores_category_correctly(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         $data = Category::factory()->make([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
@@ -132,11 +139,27 @@ class CategoryTest extends TestCase
 
         $this->assertDatabaseCount('categories', 1);
     }
+    #[Test, Group('categories')]
+    public function it_does_not_allow_regular_user_to_store_category(): void
+    {
+        Sanctum::actingAs($this->regularUser);
+
+        $data = Category::factory()->make([
+            'name' => 'Cocktails',
+            'description' => 'Alcoholic drinks',
+        ])->toArray();
+
+        $response = $this->postJson('/api/categories', $data);
+
+        $response->assertForbidden();
+
+        $this->assertDatabaseCount('categories', 0);
+    }
 
     #[Test, Group('categories')]
     public function it_validates_unique_name_on_store(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
 
         Category::factory()->create([
             'name' => 'Cocktails',
@@ -158,7 +181,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_does_not_store_category_with_empty_data(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         $response = $this->postJson('/api/categories', []);
 
         $response->assertStatus(422)
@@ -170,7 +193,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_does_not_store_category_with_invalid_data(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         $response = $this->postJson('/api/categories', ['name' => 1]);
 
         $response->assertStatus(422)
@@ -182,7 +205,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_shows_single_category_correctly(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->regularUser);
         $category = Category::factory()->create([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
@@ -200,7 +223,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_returns_404_if_single_category_not_found(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->regularUser);
         Category::factory()->create([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
@@ -214,7 +237,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_updates_category_correctly(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         $category = Category::factory()->create([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
@@ -233,9 +256,34 @@ class CategoryTest extends TestCase
     }
 
     #[Test, Group('categories')]
+    public function it_does_not_allow_regular_user_to_update_category(): void
+    {
+        Sanctum::actingAs($this->regularUser);
+
+        $category = Category::factory()->create([
+            'name' => 'Cocktails',
+            'description' => 'Alcoholic drinks',
+        ]);
+
+        $updateData = [
+            'name' => 'Updated name',
+            'description' => 'Updated description'
+        ];
+
+        $response = $this->putJson("/api/categories/{$category->id}", $updateData);
+
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('categories', [
+            'name' => $category->name,
+            'description' => $category->description,
+        ]);
+    }
+
+    #[Test, Group('categories')]
     public function it_ignores_unique_name_validation_on_update(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         $category = Category::factory()->create([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
@@ -256,7 +304,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_does_not_update_category_with_empty_data(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         $category = Category::factory()->create([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
@@ -276,7 +324,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_does_not_update_category_with_invalid_data(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         $category = Category::factory()->create([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
@@ -300,7 +348,7 @@ class CategoryTest extends TestCase
     #[Test, Group('categories')]
     public function it_deletes_category_correctly(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         $category = Category::factory()->create([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
@@ -314,9 +362,26 @@ class CategoryTest extends TestCase
     }
 
     #[Test, Group('categories')]
+    public function it_does_not_allow_regular_user_to_delete_category(): void
+    {
+        Sanctum::actingAs($this->regularUser);
+
+        $category = Category::factory()->create([
+            'name' => 'Cocktails',
+            'description' => 'Alcoholic drinks',
+        ]);
+
+        $response = $this->deleteJson("/api/categories/{$category->id}");
+
+        $response->assertForbidden();
+
+        $this->assertDatabaseCount('categories', 1);
+    }
+
+    #[Test, Group('categories')]
     public function it_does_not_delete_category_if_not_found(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->adminUser);
         Category::factory()->create([
             'name' => 'Cocktails',
             'description' => 'Alcoholic drinks',
