@@ -551,4 +551,162 @@ class CocktailIndexTest extends CocktailTestCase
 
         $response->assertJsonValidationErrors(['filter.0.values.0']);
     }
+
+    #[Test, Group('cocktails')]
+    public function it_sorts_by_name_ascending_by_default(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        Cocktail::factory()->create(['name' => 'B']);
+        Cocktail::factory()->create(['name' => 'A']);
+        Cocktail::factory()->create(['name' => 'C']);
+
+        $response = $this->getJson('/api/cocktails');
+
+        $response->assertOk();
+
+        $names = collect($response->json('data'))->pluck('name')->values();
+
+        $this->assertEquals(['A', 'B', 'C'], $names->toArray());
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_sorts_by_name_descending(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        Cocktail::factory()->create(['name' => 'A']);
+        Cocktail::factory()->create(['name' => 'B']);
+        Cocktail::factory()->create(['name' => 'C']);
+
+        $params = [
+            'sorting' => [
+                [
+                    'attribute' => 'name',
+                    'direction' => 'desc',
+                ],
+            ],
+        ];
+
+        $response = $this->getJson('/api/cocktails?' . http_build_query($params));
+
+        $response->assertOk();
+
+        $names = collect($response->json('data'))->pluck('name')->values();
+
+        $this->assertEquals(['C', 'B', 'A'], $names->toArray());
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_sorts_by_created_at_ascending(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $c1 = Cocktail::factory()->create();
+        sleep(1);
+        $c2 = Cocktail::factory()->create();
+        sleep(1);
+        $c3 = Cocktail::factory()->create();
+
+        $params = [
+            'sorting' => [
+                [
+                    'attribute' => 'created_at',
+                    'direction' => 'asc',
+                ],
+            ],
+        ];
+
+        $response = $this->getJson('/api/cocktails?' . http_build_query($params));
+
+        $response->assertOk();
+
+        $ids = collect($response->json('data'))->pluck('id')->values();
+
+        $this->assertEquals([$c1->id, $c2->id, $c3->id], $ids->toArray());
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_sorts_by_created_at_descending(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $c1 = Cocktail::factory()->create();
+        sleep(1);
+        $c2 = Cocktail::factory()->create();
+        sleep(1);
+        $c3 = Cocktail::factory()->create();
+
+        $params = [
+            'sorting' => [
+                [
+                    'attribute' => 'created_at',
+                    'direction' => 'desc',
+                ],
+            ],
+        ];
+
+        $response = $this->getJson('/api/cocktails?' . http_build_query($params));
+
+        $response->assertOk();
+
+        $ids = collect($response->json('data'))->pluck('id')->values();
+
+        $this->assertEquals([$c3->id, $c2->id, $c1->id], $ids->toArray());
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_validates_sorting_attribute(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $params = [
+            'sorting' => [
+                [
+                    'attribute' => 'invalid',
+                    'direction' => 'asc',
+                ],
+            ],
+        ];
+
+        $response = $this->getJson('/api/cocktails?' . http_build_query($params));
+
+        $response->assertJsonValidationErrors(['sorting.0.attribute']);
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_validates_sorting_direction(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $params = [
+            'sorting' => [
+                [
+                    'attribute' => 'name',
+                    'direction' => 'invalid',
+                ],
+            ],
+        ];
+
+        $response = $this->getJson('/api/cocktails?' . http_build_query($params));
+
+        $response->assertJsonValidationErrors(['sorting.0.direction']);
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_allows_only_one_sorting(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $params = [
+            'sorting' => [
+                ['attribute' => 'name', 'direction' => 'asc'],
+                ['attribute' => 'created_at', 'direction' => 'desc'],
+            ],
+        ];
+
+        $response = $this->getJson('/api/cocktails?' . http_build_query($params));
+
+        $response->assertJsonValidationErrors(['sorting']);
+    }
 }

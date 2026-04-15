@@ -37,8 +37,11 @@ class CocktailIndexRequest extends FormRequest
             'filter' => ['sometimes', 'array', 'min:1'],
             'filter.*.name' => ['required', 'string', Rule::in(CocktailQueryHelper::availableFilters())],
             'filter.*.values' => ['required', 'array', 'min:1'],
-            'filter.*.values.*' => ['required', 'integer', 'min:1', 'distinct']
+            'filter.*.values.*' => ['required', 'integer', 'min:1', 'distinct'],
 
+            'sorting' => ['sometimes', 'array', 'min:1', 'max:1'],
+            'sorting.0.attribute' => ['required_with:sorting', 'string', Rule::in(CocktailQueryHelper::availableSortingAttributes())],
+            'sorting.0.direction' => ['required_with:sorting', 'string', Rule::in(['asc', 'desc'])],
         ];
     }
 

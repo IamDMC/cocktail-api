@@ -22,4 +22,12 @@ class CocktailQueryHelper
             'ingredients'
         ];
     }
+
+    public static function availableSortingAttributes(): array
+    {
+        return [
+            'name',
+            'created_at'
+        ];
+    }
 }
