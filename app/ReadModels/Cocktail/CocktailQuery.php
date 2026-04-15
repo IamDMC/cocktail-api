@@ -14,33 +14,39 @@ class CocktailQuery
      * @param array<string> $relationsToBeLoaded
      * @param string|null $search
      * @param array<int, array{name: string, values: array<int>}> $filters
+     * @param array<int, array{attribute: string, direction: string}> $sorting
      * @param int $per_page
+     * @param User|null $user
      * @return LengthAwarePaginator
      */
-    public function paginate(array $relationsToBeLoaded, ?string $search, array $filters = [], int $per_page = 10, ?User $user = null): LengthAwarePaginator
+    public function paginate(array $relationsToBeLoaded, ?string $search, array $filters = [], array $sorting = [], int $per_page = 10, ?User $user = null): LengthAwarePaginator
     {
-        return $this->baseQuery($relationsToBeLoaded, $search, $filters, $user)->paginate($per_page);
+        return $this->baseQuery($relationsToBeLoaded, $search, $filters, $sorting, $user)->paginate($per_page);
     }
 
     /**
      * @param array<string> $relationsToBeLoaded
      * @param string|null $search
      * @param array<int, array{name: string, values: array<int>}> $filters
+     * @param array<int, array{attribute: string, direction: string}> $sorting
      * @param int $limit
+     * @param User|null $user
      * @return Collection<int, Cocktail>
      */
-    public function limit(array $relationsToBeLoaded, ?string $search, array $filters = [], int $limit = 10, ?User $user = null): Collection
+    public function limit(array $relationsToBeLoaded, ?string $search, array $filters = [], array $sorting = [], int $limit = 10, ?User $user = null): Collection
     {
-        return $this->baseQuery($relationsToBeLoaded, $search, $filters, $user)->limit($limit)->get();
+        return $this->baseQuery($relationsToBeLoaded, $search, $filters, $sorting, $user)->limit($limit)->get();
     }
 
     /**
      * @param array<string> $relationsToBeLoaded
      * @param string|null $search
      * @param array<int, array{name: string, values: array<int>}> $filters
+     * @param array<int, array{attribute: string, direction: string}> $sorting
+     * @param User|null $user
      * @return Builder
      */
-    private function baseQuery(array $relationsToBeLoaded, ?string $search, array $filters = [], ?User $user = null): Builder
+    private function baseQuery(array $relationsToBeLoaded, ?string $search, array $filters = [], array $sorting = [], ?User $user = null): Builder
     {
         $query = Cocktail::publicOrOwned($user);
 
@@ -61,6 +67,16 @@ class CocktailQuery
             $query = $this->applyIncludes($query, $relationsToBeLoaded);
         }
 
+        if (!empty($sorting) && isset($sorting[0]['attribute'], $sorting[0]['direction'])) {
+            $query = $this->applySorting(
+                $query,
+                $sorting[0]['attribute'],
+                $sorting[0]['direction']
+            );
+        } else {
+            $query = $this->applySorting($query, 'name', 'asc');
+        }
+
        return $query;
     }
 
@@ -75,6 +91,41 @@ class CocktailQuery
             $q->where('name', 'like', "%$search%")
                 ->orWhere('description', 'like',  "%$search%");
         });
+    }
+
+    /**
+     * @param Builder $query
+     * @param string $attribute
+     * @param string $direction
+     * @return Builder
+     */
+    private function applySorting(Builder $query, string $attribute, string $direction): Builder
+    {
+        return match ($attribute) {
+            'name' => $this->applySortByName($query, $direction),
+            'created_at' => $this->applySortByCreatedAt($query, $direction),
+            default => $this->logUnmatchedSortingName($query, $attribute),
+        };
+    }
+
+    /**
+     * @param Builder $query
+     * @param string $direction
+     * @return Builder
+     */
+    private function applySortByName(Builder $query, string $direction): Builder
+    {
+        return $query->orderBy('cocktails.name', $direction);
+    }
+
+    /**
+     * @param Builder $query
+     * @param string $direction
+     * @return Builder
+     */
+    private function applySortByCreatedAt(Builder $query, string $direction): Builder
+    {
+        return $query->orderBy('cocktails.created_at', $direction);
     }
 
     /**
@@ -135,6 +186,20 @@ class CocktailQuery
     {
         Log::warning('Unknown filter', [
             'filter' => $filterName,
+        ]);
+
+        return $query;
+    }
+
+    /**
+     * @param Builder $query
+     * @param string $attribute
+     * @return Builder
+     */
+    private function logUnmatchedSortingName(Builder $query, string $attribute): Builder
+    {
+        Log::warning('Unknown sorting attribute', [
+            'attribute' => $attribute,
         ]);
 
         return $query;

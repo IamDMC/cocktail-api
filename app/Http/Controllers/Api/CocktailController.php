@@ -28,6 +28,7 @@ class CocktailController extends Controller
     #[QueryParam('include', 'array', 'Relations to include (user, categories, steps, ingredients, ratings.user, favoredBy)', required: false)]
     #[QueryParam('search', 'string', 'Search term for name/description', required: false)]
     #[QueryParam('filter', 'array', 'Filter options', required: false)]
+    #[QueryParam('sorting', 'array', 'Sorting options', required: false)]
     #[QueryParam('per_page', 'int', 'Paginate results', required: false)]
     #[QueryParam('limit', 'int', 'Limit results (if not paginated)', required: false)]
     public function index(CocktailIndexRequest $request)
@@ -35,13 +36,14 @@ class CocktailController extends Controller
         $relationsToBeLoaded = $request->validated('include', []);
         $search = $request->validated('search', '');
         $filter = $request->validated('filter', []);
+        $sorting = $request->validated('sorting', []);
         $user = $request->user();
 
         $query = new CocktailQuery();
         if ($request->filled('per_page')){
-            $result = $query->paginate($relationsToBeLoaded, $search, $filter, $request->integer('per_page', 10), $user);
+            $result = $query->paginate($relationsToBeLoaded, $search, $filter, $sorting ,$request->integer('per_page', 10), $user);
         } else {
-            $result = $query->limit($relationsToBeLoaded, $search, $filter, $request->integer('limit', 10), $user);
+            $result = $query->limit($relationsToBeLoaded, $search, $filter, $sorting,$request->integer('limit', 10), $user);
         }
 
         return CocktailResource::collection($result);
