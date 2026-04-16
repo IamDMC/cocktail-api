@@ -27,11 +27,11 @@ class IngredientController extends Controller
         $query = Ingredient::query();
 
         if ($request->filled('per_page')){
-            $result = $query->paginate($request->integer('per_page', 10));
+            $result = $query->orderBy('name')->paginate($request->integer('per_page', 10));
         } elseif ($request->filled('limit')){
-            $result = $query->limit($request->integer('limit', 10))->get();
+            $result = $query->orderBy('name')->limit($request->integer('limit', 10))->get();
         } else {
-            $result = $query->get();
+            $result = $query->orderBy('name')->get();
         }
 
         return IngredientResource::collection($result);

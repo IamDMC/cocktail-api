@@ -61,7 +61,8 @@ class Cocktail extends Model
      */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class);
+        return $this->belongsToMany(Category::class)
+            ->orderBy('categories.name');
     }
 
     /**
@@ -80,7 +81,8 @@ class Cocktail extends Model
     {
         return $this->belongsToMany(Ingredient::class)
             ->using(CocktailIngredient::class)
-            ->withPivot('amount', 'unit');
+            ->withPivot('amount', 'unit')
+            ->orderBy('ingredients.name');
     }
 
     /**
@@ -88,7 +90,8 @@ class Cocktail extends Model
      */
     public function ratings(): HasMany
     {
-        return $this->hasMany(Rating::class);
+        return $this->hasMany(Rating::class)
+            ->orderBy('ratings.created_at', 'desc');
     }
 
     /**
@@ -96,7 +99,8 @@ class Cocktail extends Model
      */
     public function favoredBy(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_cocktail');
+        return $this->belongsToMany(User::class, 'user_cocktail')
+            ->orderBy('users.name');
     }
 
     // *******************************************
@@ -109,7 +113,7 @@ class Cocktail extends Model
      */
     public function scopePublic(Builder $query): Builder
     {
-        return $query->where('is_public', '=', 'true');
+        return $query->where('is_public',  '=', true);
     }
 
     /**
@@ -128,15 +132,4 @@ class Cocktail extends Model
         });
     }
 
-    // *******************************************
-    // * Accessors
-    // *******************************************
-
-    /**
-     * @return float
-     */
-    public function getAverageRatingAttribute(): float
-    {
-        return (float) $this->ratings()->avg('rating');
-    }
 }
