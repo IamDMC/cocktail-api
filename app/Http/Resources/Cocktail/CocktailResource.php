@@ -27,29 +27,45 @@ class CocktailResource extends JsonResource
             'description' => $this->resource->description,
             'is_public' => $this->resource->is_public,
 
-            'user' => new UserResource(
-                $this->whenLoaded('user')
+            'average_rating' => $this->when(
+                isset($this->average_rating),
+                (float) $this->resource->average_rating
             ),
 
-            'categories' => CategoryResource::collection(
-                $this->whenLoaded('categories')
+            'favored_by_count' => $this->when(
+                isset($this->favored_by_count),
+                $this->resource->favored_by_count
             ),
 
-            'steps' => CocktailStepResource::collection(
-                $this->whenLoaded('steps')
+            'user' => $this->whenLoaded(
+                'user',
+                fn () => new UserResource($this->resource->user)
             ),
 
-            'ingredients' => CocktailIngredientResource::collection(
-                $this->whenLoaded('ingredients')
+            'categories' => $this->whenLoaded(
+                'categories',
+                fn () => CategoryResource::collection($this->resource->categories)
             ),
 
-            'ratings' => RatingResource::collection(
-                $this->whenLoaded('ratings')
+            'steps' => $this->whenLoaded(
+                'steps',
+                fn () => CocktailStepResource::collection($this->resource->steps)
             ),
 
-            'favoredBy' => UserResource::collection(
-                $this->whenLoaded('favoredBy')
-            )
+            'ingredients' => $this->whenLoaded(
+                'ingredients',
+                fn () => CocktailIngredientResource::collection($this->resource->ingredients)
+            ),
+
+            'ratings' => $this->whenLoaded(
+                'ratings',
+                fn () => RatingResource::collection($this->resource->ratings)
+            ),
+
+            'favoredBy' => $this->whenLoaded(
+                'favoredBy',
+                fn () => UserResource::collection($this->resource->favoredBy)
+            ),
         ];
     }
 }

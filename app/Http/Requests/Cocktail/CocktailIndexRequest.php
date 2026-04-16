@@ -30,6 +30,7 @@ class CocktailIndexRequest extends FormRequest
             'per_page' => ['integer', 'min:1', 'max:100'],
             'limit' =>  ['integer', 'min:1', 'max:100'],
             'search' => ['string', 'max:60'],
+            'scope' => ['sometimes', 'string', Rule::in(CocktailQueryHelper::availableScopes())],
 
             'include' => ['sometimes', 'array', 'min:1'],
             'include.*' => ['string', Rule::in(CocktailQueryHelper::allowedRelationShips()), 'distinct'],

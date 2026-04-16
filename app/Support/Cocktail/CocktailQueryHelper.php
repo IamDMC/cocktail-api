@@ -30,4 +30,13 @@ class CocktailQueryHelper
             'created_at'
         ];
     }
+
+    public static function availableScopes(): array
+    {
+        return [
+            'public',
+            'owned',
+            'public_or_owned'
+        ];
+    }
 }
