@@ -23,8 +23,6 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
  * Authenticated routes
  */
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', fn (Request $request) => $request->user());
-
     Route::post('/auth/logout', \App\Http\Controllers\Api\Auth\LogoutUserController::class);
 
     // Resend email verification link
@@ -60,4 +58,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::post('/favorite/cocktails/{cocktail}', [\App\Http\Controllers\Api\CocktailFavoredByController::class, 'store']);
     Route::delete('/favorite/cocktails/{cocktail}', [\App\Http\Controllers\Api\CocktailFavoredByController::class, 'destroy']);
+
+    Route::get('/user', [\App\Http\Controllers\Api\UserController::class, 'show']);
+    Route::put('/user', [\App\Http\Controllers\Api\UserController::class, 'update']);
+    Route::delete('/user', [\App\Http\Controllers\Api\UserController::class, 'destroy']);
 });
