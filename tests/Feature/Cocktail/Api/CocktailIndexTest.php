@@ -709,4 +709,185 @@ class CocktailIndexTest extends CocktailTestCase
 
         $response->assertJsonValidationErrors(['sorting']);
     }
+
+    #[Test, Group('cocktails')]
+    public function it_returns_stats_average_rating_and_favored_by_count(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $cocktails = $this->makeMultipleCocktails(3);
+
+        foreach ($cocktails as $item) {
+            $cocktail = $item['cocktail'];
+
+            $users = User::factory()->count(3)->create();
+
+            foreach ($users as $user) {
+                $user->ratings()->create([
+                    'cocktail_id' => $cocktail->id,
+                    'rating' => 4,
+                ]);
+            }
+
+            $favUsers = User::factory()->count(2)->create();
+
+            foreach ($favUsers as $favUser) {
+                $favUser->favoriteCocktails()->attach($cocktail->id);
+            }
+        }
+
+        $response = $this->getJson('/api/cocktails');
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+
+        foreach ($data as $cocktail) {
+            $this->assertEquals(4.0, $cocktail['average_rating']);
+            $this->assertEquals(2, $cocktail['favored_by_count']);
+        }
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_includes_stats(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $this->makeMultipleCocktails(3);
+
+        $user = User::factory()->create();
+
+        foreach (Cocktail::all() as $cocktail) {
+            $user->ratings()->updateOrCreate(
+                ['cocktail_id' => $cocktail->id],
+                ['rating' => 5]
+            );
+        }
+
+        $favUser = User::factory()->create();
+
+        foreach (Cocktail::all() as $cocktail) {
+            $favUser->favoriteCocktails()->attach($cocktail->id);
+        }
+
+        $response = $this->getJson('/api/cocktails');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'description',
+                        'is_public',
+                        'average_rating',
+                        'favored_by_count',
+                    ],
+                ],
+            ]);
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_calculates_stats_correctly_for_multiple_cocktails(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $cocktail1 = Cocktail::factory()->create();
+        $cocktail2 = Cocktail::factory()->create();
+
+        $user = User::factory()->create();
+
+        $user->ratings()->create([
+            'cocktail_id' => $cocktail1->id,
+            'rating' => 5,
+        ]);
+
+        $user->ratings()->create([
+            'cocktail_id' => $cocktail2->id,
+            'rating' => 1,
+        ]);
+
+        $response = $this->getJson('/api/cocktails');
+
+        $response->assertOk();
+
+        $data = collect($response->json('data'))->keyBy('id');
+
+        $this->assertEquals(5.0, $data[$cocktail1->id]['average_rating']);
+        $this->assertEquals(1.0, $data[$cocktail2->id]['average_rating']);
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_validates_scope_to_be_valid(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $response = $this->getJson('/api/cocktails?scope=invalid');
+
+        $response->assertJsonValidationErrors(['scope']);
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_validates_scope_to_be_string(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $response = $this->getJson('/api/cocktails?scope[]=public');
+
+        $response->assertJsonValidationErrors(['scope']);
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_applies_owned_scope(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $this->makeMultipleCocktails(3);
+
+        $otherUser = User::factory()->create();
+        $this->createCocktail(
+            $this->makeCocktail($otherUser)
+        );
+
+        $response = $this->getJson('/api/cocktails?scope=owned');
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data');
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_applies_public_scope(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $this->makeMultipleCocktails(3);
+
+        $this->createCocktail(
+            $this->makeCocktail($this->user, isPublic: false)
+        );
+
+        $response = $this->getJson('/api/cocktails?scope=public');
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data');
+    }
+
+    #[Test, Group('cocktails')]
+    public function it_defaults_to_public_scope(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $this->makeMultipleCocktails(3);
+
+        $otherUser = User::factory()->create();
+
+        $this->createCocktail(
+            $this->makeCocktail($otherUser, isPublic: false)
+        );
+
+        $response = $this->getJson('/api/cocktails');
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data');
+    }
 }

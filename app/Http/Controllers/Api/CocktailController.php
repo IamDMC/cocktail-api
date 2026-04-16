@@ -35,15 +35,23 @@ class CocktailController extends Controller
     {
         $relationsToBeLoaded = $request->validated('include', []);
         $search = $request->validated('search', '');
+        $scope = $request->validated('scope', 'public_or_owned');;
         $filter = $request->validated('filter', []);
         $sorting = $request->validated('sorting', []);
         $user = $request->user();
 
-        $query = new CocktailQuery();
+        $baseQuery = (new CocktailQuery())
+            ->forScope($scope, $user)
+            ->search($search)
+            ->filter($filter)
+            ->withRelations($relationsToBeLoaded)
+            ->withStats()
+            ->sort($sorting);
+
         if ($request->filled('per_page')){
-            $result = $query->paginate($relationsToBeLoaded, $search, $filter, $sorting ,$request->integer('per_page', 10), $user);
+            $result = $baseQuery->paginate($request->integer('per_page', 10));
         } else {
-            $result = $query->limit($relationsToBeLoaded, $search, $filter, $sorting,$request->integer('limit', 10), $user);
+            $result = $baseQuery->limit($request->integer('limit', 10));
         }
 
         return CocktailResource::collection($result);

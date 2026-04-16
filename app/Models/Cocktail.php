@@ -17,15 +17,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_public
  * @property int $user_id
  *
- * @property-read float $average_rating
+ *
+ * @property-read User $user
  * @property-read Collection<int, Ingredient> $ingredients
  * @property-read Collection<int, Category> $categories
  * @property-read Collection<int, CocktailStep> $steps
  * @property-read Collection<int, Rating> $ratings
  * @property-read Collection<int, User> $favoredBy
+ * @property-read float|null $average_rating
+ * @property-read int|null $favored_by_count
  *
  * @method static Builder|self public()
  * @method static Builder|self publicOrOwned(User $user)
+ * @method static Builder|self userOwned(User $user)
  */
 
 class Cocktail extends Model
@@ -132,4 +136,13 @@ class Cocktail extends Model
         });
     }
 
+    /**
+     * @param Builder $query
+     * @param User $user
+     * @return Builder
+     */
+    public function scopeUserOwned(Builder $query, User $user): Builder
+    {
+        return $query->where('user_id', $user->id);
+    }
 }
