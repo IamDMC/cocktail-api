@@ -30,7 +30,7 @@ class RatingResource extends JsonResource
             ),
 
             'cocktail' => new CocktailResource(
-                $this->whenLoaded('cocktails')
+                $this->whenLoaded('cocktail')
             )
         ];
     }

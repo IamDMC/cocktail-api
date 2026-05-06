@@ -8,6 +8,7 @@ use App\Models\Cocktail;
 use App\Models\User;
 
 use Illuminate\Http\Request;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\Response;
 use Knuckles\Scribe\Attributes\UrlParam;
@@ -15,6 +16,7 @@ use Knuckles\Scribe\Attributes\UrlParam;
 #[Group('Cocktail-Favorites', description: 'Allows the user to add or remove cocktails from favorites')]
 class CocktailFavoredByController extends Controller
 {
+    #[Authenticated]
     #[UrlParam('cocktail', 'int', 'The ID of the cocktail', example: 1)]
     #[Response(status: 204, description: 'Cocktail added to favorites')]
     #[Response(status: 404, description: 'Cocktail not found')]
@@ -29,7 +31,7 @@ class CocktailFavoredByController extends Controller
 
         return response()->noContent();
     }
-
+    #[Authenticated]
     #[UrlParam('cocktail', 'int', 'The ID of the cocktail', example: 1)]
     #[Response(status: 204, description: 'Cocktail removed from favorites')]
     #[Response(status: 404, description: 'Cocktail not found')]

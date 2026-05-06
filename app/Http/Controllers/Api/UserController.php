@@ -18,7 +18,10 @@ use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 class UserController extends Controller
 {
     #[Authenticated]
-    #[ResponseFromApiResource(UserResource::class)]
+    #[ResponseFromApiResource(
+        UserResource::class,
+        \App\Models\User::class
+    )]
     public function show(Request $request)
     {
         return new UserResource(
@@ -32,7 +35,10 @@ class UserController extends Controller
     #[BodyParam('password', 'string', 'New password (must be confirmed)', example: 'Password1!')]
     #[BodyParam('password_confirmation', 'string', 'Password confirmation', example: 'Password1!')]
     #[BodyParam('image', 'file', 'User profile image (jpeg, png, max 5MB)')]
-    #[ResponseFromApiResource(UserResource::class)]
+    #[ResponseFromApiResource(
+        UserResource::class,
+        \App\Models\User::class
+    )]
     public function update(UserUpdateRequest $request)
     {
         $user = $request->user();
@@ -62,6 +68,7 @@ class UserController extends Controller
 
         return new UserResource($user);
     }
+
     #[Authenticated]
     public function destroy(Request $request)
     {

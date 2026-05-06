@@ -63,4 +63,15 @@ class CocktailIndexRequest extends FormRequest
         });
     }
 
+    // added to remove body parameters in scribe docs
+    public function bodyParameters(): array
+    {
+        return [];
+    }
+
+    // added to remove body parameters in scribe docs
+    public function queryParameters(): array
+    {
+        return [];
+    }
 }

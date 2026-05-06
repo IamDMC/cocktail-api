@@ -127,4 +127,5 @@ return [
      * Custom configuration
      */
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+    'scribe_auth_key' => env('SCRIBE_AUTH_KEY'),
 ];

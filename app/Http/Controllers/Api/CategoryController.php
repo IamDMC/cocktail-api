@@ -9,9 +9,11 @@ use App\Http\Requests\Category\CategoryUpdateRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\QueryParam;
 use Knuckles\Scribe\Attributes\BodyParam;
+use Knuckles\Scribe\Attributes\Response;
 use Knuckles\Scribe\Attributes\UrlParam;
 use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 
@@ -19,7 +21,7 @@ use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 class CategoryController extends Controller
 {
     use AuthorizesRequests;
-
+    #[Authenticated]
     #[QueryParam('per_page', 'int', 'Number of items per page (pagination)', required: false, example: 10)]
     #[QueryParam('limit', 'int', 'Limit results if per_page is not set', required: false, example: 5)]
     public function index(CategoryIndexRequest $request)
@@ -36,7 +38,11 @@ class CategoryController extends Controller
 
         return CategoryResource::collection($result);
     }
-
+    #[Authenticated]
+    #[Response(
+        status: 403,
+        description: 'Admin privileges required.'
+    )]
     #[BodyParam('name', 'string', 'The name of the category', example: 'Cocktails')]
     #[BodyParam('description', 'string', 'Description of the category', example: 'Alcoholic drinks')]
     #[ResponseFromApiResource(CategoryResource::class, Category::class, status: 201)]
@@ -48,15 +54,17 @@ class CategoryController extends Controller
             ->response()
             ->setStatusCode(201);
     }
-
-    #[UrlParam('category', 'int', 'The ID of the category', example: 1)]
+    #[Authenticated]
     #[ResponseFromApiResource(CategoryResource::class, Category::class)]
     public function show(Category $category)
     {
         return new CategoryResource($category);
     }
-
-    #[UrlParam('category', 'int', 'The ID of the category', example: 1)]
+    #[Authenticated]
+    #[Response(
+        status: 403,
+        description: 'Admin privileges required.'
+    )]
     #[BodyParam('name', 'string', 'The name of the category', required: false, example: 'Cocktails')]
     #[BodyParam('description', 'string', 'Description of the category', required: false, example: 'Alcoholic drinks')]
     #[ResponseFromApiResource(CategoryResource::class, Category::class)]
@@ -66,8 +74,11 @@ class CategoryController extends Controller
 
         return new CategoryResource($category);
     }
-
-    #[UrlParam('category', 'int', 'The ID of the category', example: 1)]
+    #[Authenticated]
+    #[Response(
+        status: 403,
+        description: 'Admin privileges required.'
+    )]
     public function destroy(Category $category)
     {
         $this->authorize('delete', $category);

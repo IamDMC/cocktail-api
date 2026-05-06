@@ -27,4 +27,16 @@ class CategoryIndexRequest extends FormRequest
             'limit' =>  ['integer', 'min:1', 'max:100'],
         ];
     }
+
+    // added to remove body parameters in scribe docs
+    public function bodyParameters(): array
+    {
+        return [];
+    }
+
+    // added to remove body parameters in scribe docs
+    public function queryParameters(): array
+    {
+        return [];
+    }
 }

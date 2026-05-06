@@ -15,6 +15,7 @@ use App\Models\Cocktail;
 use App\ReadModels\Cocktail\CocktailQuery;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\BodyParam;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\QueryParam;
@@ -24,7 +25,7 @@ use Knuckles\Scribe\Attributes\UrlParam;
 class CocktailController extends Controller
 {
     use AuthorizesRequests;
-
+    #[Authenticated]
     #[QueryParam('include', 'array', 'Relations to include (user, categories, steps, ingredients, ratings.user, favoredBy)', required: false)]
     #[QueryParam('search', 'string', 'Search term for name/description', required: false)]
     #[QueryParam('filter', 'array', 'Filter options', required: false)]
@@ -57,7 +58,7 @@ class CocktailController extends Controller
         return CocktailResource::collection($result);
     }
 
-
+    #[Authenticated]
     #[BodyParam('name', 'string', 'Name of the cocktail', example: 'Mojito')]
     #[BodyParam('description', 'string', 'Description', required: false, example: 'Fresh cocktail with mint')]
     #[BodyParam('isPublic', 'boolean', 'Is cocktail public', example: true)]
@@ -85,7 +86,7 @@ class CocktailController extends Controller
         return (new CocktailResource($cocktail))
             ->response()->setStatusCode(201);
     }
-
+    #[Authenticated]
     #[QueryParam('include', 'array', 'Relations to include (user, categories, steps, ingredients, ratings.user, favoredBy)', required: false)]
     public function show(CocktailShowRequest $request, Cocktail $cocktail)
     {
@@ -93,7 +94,7 @@ class CocktailController extends Controller
 
         return new CocktailResource($result);
     }
-
+    #[Authenticated]
     #[BodyParam('name', 'string', 'Name of the cocktail', example: 'Updated Mojito')]
     #[BodyParam('description', 'string', 'Description', required: false)]
     #[BodyParam('isPublic', 'boolean', 'Is cocktail public')]
@@ -116,7 +117,7 @@ class CocktailController extends Controller
         return new CocktailResource($cocktail);
     }
 
-    #[UrlParam('cocktail', 'int', 'The ID of the cocktail', example: 1)]
+    #[Authenticated]
     public function destroy(Cocktail $cocktail)
     {
         $this->authorize('delete', $cocktail);
