@@ -6,11 +6,13 @@ use App\Enums\Unit;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\Response;
 #[Group('Units', description: 'Available measurement units')]
 class UnitController extends Controller
 {
+    #[Authenticated]
     #[Response([
         ['name' => 'CL', 'value' => 'cl'],
         ['name' => 'ML', 'value' => 'ml'],

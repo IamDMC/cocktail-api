@@ -9,9 +9,11 @@ use App\Http\Requests\Ingredient\IngredientUpdateRequest;
 use App\Http\Resources\IngredientResource;
 use App\Models\Ingredient;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\QueryParam;
 use Knuckles\Scribe\Attributes\BodyParam;
+use Knuckles\Scribe\Attributes\Response;
 use Knuckles\Scribe\Attributes\UrlParam;
 use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 
@@ -19,7 +21,7 @@ use Knuckles\Scribe\Attributes\ResponseFromApiResource;
 class IngredientController extends Controller
 {
     use AuthorizesRequests;
-
+    #[Authenticated]
     #[QueryParam('per_page', 'int', 'Number of items per page (pagination)', required: false, example: 10)]
     #[QueryParam('limit', 'int', 'Limit results if per_page is not set', required: false, example: 5)]
     public function index(IngredientIndexRequest $request)
@@ -36,7 +38,11 @@ class IngredientController extends Controller
 
         return IngredientResource::collection($result);
     }
-
+    #[Authenticated]
+    #[Response(
+        status: 403,
+        description: 'Admin privileges required.'
+    )]
     #[BodyParam('name', 'string', 'The name of the ingredient', example: 'White rum')]
     #[BodyParam('description', 'string', 'Description of the ingredient', example: 'Light rum')]
     #[BodyParam('default_unit', 'string', 'Default unit of the ingredient', example: 'cl')]
@@ -50,14 +56,18 @@ class IngredientController extends Controller
             ->setStatusCode(201);
     }
 
-    #[UrlParam('ingredient', 'int', 'The ID of the ingredient', example: 1)]
+    #[Authenticated]
     #[ResponseFromApiResource(IngredientResource::class, Ingredient::class)]
     public function show(Ingredient $ingredient)
     {
         return new IngredientResource($ingredient);
     }
 
-    #[UrlParam('ingredient', 'int', 'The ID of the ingredient', example: 1)]
+    #[Authenticated]
+    #[Response(
+        status: 403,
+        description: 'Admin privileges required.'
+    )]
     #[BodyParam('name', 'string', 'The name of the ingredient', required: false, example: 'White rum')]
     #[BodyParam('description', 'string', 'Description of the ingredient', required: false, example: 'Light rum')]
     #[BodyParam('default_unit', 'string', 'Default unit of the ingredient', required: false, example: 'cl')]
@@ -69,7 +79,11 @@ class IngredientController extends Controller
         return new IngredientResource($ingredient);
     }
 
-    #[UrlParam('ingredient', 'int', 'The ID of the ingredient', example: 1)]
+    #[Authenticated]
+    #[Response(
+        status: 403,
+        description: 'Admin privileges required.'
+    )]
     public function destroy(Ingredient $ingredient)
     {
         $this->authorize('delete', $ingredient);

@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\BodyParam;
 use Knuckles\Scribe\Attributes\Group;
 use Knuckles\Scribe\Attributes\Response;
@@ -23,10 +24,15 @@ use Knuckles\Scribe\Attributes\UrlParam;
 #[Group('Cocktail-Rating', description: 'Create or update a user rating for a cocktail')]
 class CocktailRatingController extends Controller
 {
+    #[Authenticated]
     #[UrlParam('cocktail', 'int', 'The ID of the cocktail', example: 1)]
     #[BodyParam('rating', 'int', 'The rating of the cocktail', required: true, example: 1)]
     #[BodyParam('comment', 'string', 'Comment of the rating', required: false, example: 'Difficult to prepare')]
-    #[ResponseFromApiResource(RatingResource::class, status: 201)]
+    #[ResponseFromApiResource(
+        RatingResource::class,
+        \App\Models\Rating::class,
+        status: 201
+    )]
     #[Response(status: 422, description: 'Validation error')]
     #[Response(status: 404, description: 'Cocktail not found')]
     public function store(CocktailRatingRequest $request, Cocktail $cocktail)
@@ -48,10 +54,15 @@ class CocktailRatingController extends Controller
         return (new RatingResource($rating))
             ->response()->setStatusCode(201);
     }
+    #[Authenticated]
     #[UrlParam('cocktail', 'int', 'The ID of the cocktail', example: 1)]
     #[BodyParam('rating', 'int', 'The rating of the cocktail', required: true, example: 1)]
     #[BodyParam('comment', 'string', 'Comment of the rating', required: false, example: 'Difficult to prepare')]
-    #[ResponseFromApiResource(RatingResource::class, status:200)]
+    #[ResponseFromApiResource(
+        RatingResource::class,
+        \App\Models\Rating::class,
+        status: 200
+    )]
     #[Response(status: 422, description: 'Validation error')]
     #[Response(status: 404, description: 'Cocktail not found')]
     public function update(CocktailRatingRequest $request, Cocktail $cocktail)
