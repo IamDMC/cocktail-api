@@ -2,11 +2,13 @@
 
 namespace App\Actions\Cocktail;
 
+use App\Actions\Image\UploadImageAction;
 use App\Data\Cocktail\Create\CreateCocktailData;
 use App\Data\Cocktail\Create\CreateCocktailStepData;
 use App\Data\Cocktail\Create\CreateCocktailIngredientData;
 use App\Models\Cocktail;
 use App\Models\CocktailStep;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -15,17 +17,20 @@ final readonly class CreateCocktailAction
     /**
      * @param CreateCocktailData $cocktailData
      * @param array<int, CreateCocktailStepData> $steps
-     * @param array<int, CreateCocktailIngredientData> $ingredients
      * @param array<int, int> $categoryIds
+     * @param array<int, CreateCocktailIngredientData> $ingredients
+     * @param UploadedFile|null $image
+     * @return Cocktail
      */
     public function execute(
         CreateCocktailData $cocktailData,
         array $steps,
         array $categoryIds,
         array $ingredients,
+        ?UploadedFile $image = null
     ): Cocktail
     {
-        return DB::transaction(function () use ($cocktailData, $steps, $categoryIds, $ingredients){
+        return DB::transaction(function () use ($cocktailData, $steps, $categoryIds, $ingredients, $image){
 
             $cocktail = Cocktail::create([
                 'name' => $cocktailData->name,
@@ -55,7 +60,11 @@ final readonly class CreateCocktailAction
                 ]);
             }
 
-            return $cocktail->fresh()->load(['steps', 'categories', 'ingredients']);
+            if ($image){
+                app(UploadImageAction::class)->execute($cocktail, $image);
+            }
+
+            return $cocktail->fresh()->load(['steps', 'categories', 'ingredients', 'image']);
         });
     }
 

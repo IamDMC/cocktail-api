@@ -23,6 +23,11 @@ class UserResource extends JsonResource
             'email' => $this->resource->email,
             'name' => $this->resource->name,
             'email_verified_at' => $this->resource->email_verified_at,
+
+            'image' => $this->whenLoaded(
+                'image',
+                fn () => new ImageResource($this->resource->image)
+            ),
         ];
     }
 }

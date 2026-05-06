@@ -2,12 +2,14 @@
 
 namespace App\Http\Requests\Cocktail;
 
+use App\Enums\ImageMimeType;
 use App\Enums\Unit;
 use App\Models\Cocktail;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Rules\File;
 
 /**
  * @property Cocktail $cocktail
@@ -48,7 +50,14 @@ class CocktailUpdateRequest extends FormRequest
             'ingredients.*.overwriteUnit' => ['nullable', new Enum(Unit::class)],
 
             'categoryIds' => ['required', 'array', 'min:1', 'max:5'],
-            'categoryIds.*' => ['distinct', 'exists:categories,id']
+            'categoryIds.*' => ['distinct', 'exists:categories,id'],
+
+            'image' => [
+                'sometimes',
+                'nullable',
+                File::types(ImageMimeType::values())
+                    ->max(5 * 1024)
+            ]
         ];
     }
 }

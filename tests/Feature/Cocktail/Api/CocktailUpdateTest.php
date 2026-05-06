@@ -2,20 +2,28 @@
 
 namespace Tests\Feature\Cocktail\Api;
 
+use App\Actions\Image\UploadImageAction;
+use App\Contracts\HasImage;
 use App\Data\Cocktail\Create\CreateCocktailData;
 use App\Data\Cocktail\Create\CreateCocktailIngredientData;
 use App\Data\Cocktail\Create\CreateCocktailStepData;
 use App\Models\Category;
 use App\Models\Cocktail;
+use App\Models\Image;
 use App\Models\Ingredient;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Cocktail\CocktailTestCase;
+use Tests\Support\Cocktail\ImageTestHelper;
 
 class CocktailUpdateTest extends CocktailTestCase
 {
+    use ImageTestHelper;
+
     /**
      * @param CreateCocktailData $cocktailData
      * @param array<int, CreateCocktailStepData> $stepsDto
@@ -30,7 +38,7 @@ class CocktailUpdateTest extends CocktailTestCase
      *     categoryIds: array<int, int>
      * }
      */
-    private function createParams(CreateCocktailData $cocktailData, array $stepsDto, array $ingredientsDto, array $categoryIds): array
+    private function createParams(CreateCocktailData $cocktailData, array $stepsDto, array $ingredientsDto, array $categoryIds, ?UploadedFile $image = null): array
     {
         $steps = [];
 
@@ -50,7 +58,9 @@ class CocktailUpdateTest extends CocktailTestCase
 
             'steps' => $steps,
             'ingredients' => $ingredients,
-            'categoryIds' => $categoryIds
+            'categoryIds' => $categoryIds,
+
+            'image' => $image
         ];
     }
 
@@ -1640,5 +1650,99 @@ class CocktailUpdateTest extends CocktailTestCase
         $this->assertCocktailSteps($referenceCocktailData['steps'], $cocktail);
         $this->assertIngredients($referenceCocktailData['ingredients'], $cocktail);
         $this->assertCategories($referenceCocktailData['categories'], $cocktail);
+    }
+
+    #[Test, Group('cocktails'), Group('image')]
+    public function it_updates_cocktail_with_image(): void
+    {
+        Storage::fake('public');
+
+        Sanctum::actingAs($this->user);
+
+        $cocktail = $this->createCocktail(
+            $this->makeCocktail(user: $this->user)
+        );
+
+        $file = UploadedFile::fake()->image('new.png');
+
+        $data = $this->createParams(
+            $this->makeCreateCocktailDto($this->user),
+            $this->makeCocktailStepDtoArray(stepIncrement: 1),
+            $this->makeIngredientDtoArray(),
+            Category::factory()->count(3)->create()->modelKeys(),
+            $file
+        );
+
+        $this->post(
+            "/api/cocktails/{$cocktail->id}",
+            ['_method' => 'PUT', ...$data],
+            ['Accept' => 'application/json']
+        )->assertOk();
+
+        Storage::disk('public')->assertExists('images/'.$file->hashName());
+
+        $this->assertDatabaseHas('images', [
+            'imageable_id' => $cocktail->id,
+            'imageable_type' => Cocktail::class,
+        ]);
+    }
+
+    #[Test, Group('cocktails'), Group('image')]
+    public function it_replaces_existing_image(): void
+    {
+        Storage::fake('public');
+
+        Sanctum::actingAs($this->user);
+
+        $cocktail = $this->createCocktail(
+            $this->makeCocktail(user: $this->user)
+        );
+
+        // old image
+        $this->fakeHasImage($cocktail, 'old.jpeg', 'image/jpeg');
+
+        $new = UploadedFile::fake()->image('new.png');
+
+        $data = $this->createParams(
+            $this->makeCreateCocktailDto($this->user),
+            $this->makeCocktailStepDtoArray(stepIncrement: 1),
+            $this->makeIngredientDtoArray(),
+            Category::factory()->count(3)->create()->modelKeys(),
+            $new
+        );
+
+        $this->post(
+            "/api/cocktails/{$cocktail->id}",
+            ['_method' => 'PUT', ...$data],
+            ['Accept' => 'application/json']
+        )->assertOk();
+
+        Storage::disk('public')->assertExists('images/'.$new->hashName());
+    }
+
+    #[Test, Group('cocktails'), Group('image')]
+    public function it_validates_image_type(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $cocktail = $this->createCocktail(
+            $this->makeCocktail(user: $this->user)
+        );
+
+        $file = UploadedFile::fake()->create('file.pdf', 100, 'application/pdf');
+
+        $data = $this->createParams(
+            $this->makeCreateCocktailDto($this->user),
+            $this->makeCocktailStepDtoArray(stepIncrement: 1),
+            $this->makeIngredientDtoArray(),
+            Category::factory()->count(3)->create()->modelKeys(),
+            $file
+        );
+
+        $this->post(
+            "/api/cocktails/{$cocktail->id}",
+            ['_method' => 'PUT', ...$data],
+            ['Accept' => 'application/json']
+        )->assertJsonValidationErrors(['image']);
     }
 }

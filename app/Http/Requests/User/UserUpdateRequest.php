@@ -2,9 +2,13 @@
 
 namespace App\Http\Requests\User;
 
+use App\Enums\ImageMimeType;
+use App\Models\Image;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\Rules\Password;
 
 class UserUpdateRequest extends FormRequest
@@ -49,6 +53,12 @@ class UserUpdateRequest extends FormRequest
                     ->numbers()
                     ->symbols(),
             ],
+
+            'image' => [
+                'sometimes',
+                File::types(ImageMimeType::values())
+                ->max(5 * 1024)
+            ]
         ];
     }
 }

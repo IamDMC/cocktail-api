@@ -2,12 +2,14 @@
 
 namespace App\Actions\Cocktail;
 
+use App\Actions\Image\UploadImageAction;
 use App\Data\Cocktail\Create\CreateCocktailIngredientData;
 use App\Data\Cocktail\Create\CreateCocktailStepData;
 use App\Data\Cocktail\Update\UpdateCocktailData;
 use App\Models\Cocktail;
 use App\Models\CocktailStep;
 use App\Support\Cocktail\CocktailQueryHelper;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -25,10 +27,11 @@ class UpdateCocktailAction
         UpdateCocktailData $updateCocktailData,
         array $steps,
         array $ingredients,
-        array $categoryIds
+        array $categoryIds,
+        ?UploadedFile $image = null
     ): Cocktail
     {
-        return DB::transaction(function () use($cocktail, $updateCocktailData, $steps, $ingredients, $categoryIds){
+        return DB::transaction(function () use($cocktail, $updateCocktailData, $steps, $ingredients, $categoryIds, $image){
 
             $cocktail->update([
                'name' => $updateCocktailData->name,
@@ -60,6 +63,10 @@ class UpdateCocktailAction
            $cocktail->ingredients()->sync($updatedIngredients);
 
            $cocktail->categories()->sync($categoryIds);
+
+            if ($image){
+                app(UploadImageAction::class)->execute($cocktail, $image);
+            }
 
            return $cocktail->fresh()->load(CocktailQueryHelper::allowedRelationShips());
         });
