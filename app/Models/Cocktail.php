@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\HasImage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 /**
  * @property int $id
@@ -32,7 +34,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static Builder|self userOwned(User $user)
  */
 
-class Cocktail extends Model
+class Cocktail extends Model implements HasImage
 {
     /** @use HasFactory<\Database\Factories\CocktailFactory> */
     use HasFactory;
@@ -79,7 +81,7 @@ class Cocktail extends Model
     }
 
     /**
-     * @return BelongsToMany<Ingredient, $this>
+     * @return BelongsToMany<Ingredient, $this, CocktailIngredient>
      */
     public function ingredients(): BelongsToMany
     {
@@ -105,6 +107,14 @@ class Cocktail extends Model
     {
         return $this->belongsToMany(User::class, 'user_cocktail')
             ->orderBy('users.name');
+    }
+
+    /**
+     * @return MorphOne
+     */
+    public function image(): MorphOne
+    {
+        return $this->morphOne(Image::class, 'imageable');
     }
 
     // *******************************************

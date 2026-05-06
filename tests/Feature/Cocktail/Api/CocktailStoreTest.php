@@ -9,6 +9,8 @@ use App\Models\Category;
 use App\Models\Cocktail;
 use App\Models\Ingredient;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -899,5 +901,83 @@ class CocktailStoreTest extends CocktailTestCase
             ->assertJsonValidationErrors(['categoryIds.1']);
 
         $this->assertDatabaseCount('cocktails', 0);
+    }
+
+    #[Test, Group('cocktails'), Group('image')]
+    public function it_creates_cocktail_with_image(): void
+    {
+        Storage::fake('public');
+
+        Sanctum::actingAs($this->user);
+
+        $cocktailData = $this->makeCreateCocktailDto($this->user);
+        $steps = $this->makeCocktailStepDtoArray(stepIncrement: 1);
+        $ingredients = $this->makeIngredientDtoArray();
+        $categories = Category::factory()->count(3)->create();
+
+        $data = $this->createParams($cocktailData, $steps, $ingredients, $categories->modelKeys());
+
+        $file = UploadedFile::fake()->image('cocktail.jpg');
+
+        $response = $this->post('/api/cocktails', [
+            ...$data,
+            'image' => $file,
+        ]);
+
+        $response->assertCreated();
+
+        $this->assertDatabaseCount('cocktails', 1);
+        $this->assertDatabaseCount('images', 1);
+
+        $cocktail = Cocktail::first();
+
+        Storage::disk('public')->assertExists($cocktail->image->path);
+    }
+
+    #[Test, Group('cocktails'), Group('image')]
+    public function it_creates_cocktail_without_image(): void
+    {
+        Storage::fake('public');
+
+        Sanctum::actingAs($this->user);
+
+        $cocktailData = $this->makeCreateCocktailDto($this->user);
+        $steps = $this->makeCocktailStepDtoArray(stepIncrement: 1);
+        $ingredients = $this->makeIngredientDtoArray();
+        $categories = Category::factory()->count(3)->create();
+
+        $data = $this->createParams($cocktailData, $steps, $ingredients, $categories->modelKeys());
+
+
+        $this->post('/api/cocktails', $data)
+            ->assertCreated();
+
+        $this->assertDatabaseCount('images', 0);
+    }
+
+    #[Test, Group('cocktails'), Group('image')]
+    public function it_validates_image_type(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $cocktailData = $this->makeCreateCocktailDto($this->user);
+        $steps = $this->makeCocktailStepDtoArray(stepIncrement: 1);
+        $ingredients = $this->makeIngredientDtoArray();
+        $categories = Category::factory()->count(3)->create();
+
+        $data = $this->createParams($cocktailData, $steps, $ingredients, $categories->modelKeys());
+
+
+        $file = UploadedFile::fake()->create('file.pdf', 100, 'application/pdf');
+
+        $response = $this->post('/api/cocktails', [
+            $data,
+            'image' => $file,
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['image']);
     }
 }

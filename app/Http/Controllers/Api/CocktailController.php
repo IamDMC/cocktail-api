@@ -35,7 +35,7 @@ class CocktailController extends Controller
     {
         $relationsToBeLoaded = $request->validated('include', []);
         $search = $request->validated('search', '');
-        $scope = $request->validated('scope', 'public_or_owned');;
+        $scope = $request->validated('scope', 'public_or_owned');
         $filter = $request->validated('filter', []);
         $sorting = $request->validated('sorting', []);
         $user = $request->user();
@@ -78,7 +78,8 @@ class CocktailController extends Controller
             cocktailData: $data['cocktailDto'],
             steps: $data['stepsDto'],
             categoryIds: $data['categoriesArray'],
-            ingredients: $data['ingredientsDto']
+            ingredients: $data['ingredientsDto'],
+            image: $request->file('image')
         );
 
         return (new CocktailResource($cocktail))
@@ -108,7 +109,8 @@ class CocktailController extends Controller
             updateCocktailData: $data['cocktailDto'],
             steps: $data['stepsDto'],
             categoryIds: $data['categoriesArray'],
-            ingredients: $data['ingredientsDto']
+            ingredients: $data['ingredientsDto'],
+            image: $request->file('image')
         );
 
         return new CocktailResource($cocktail);

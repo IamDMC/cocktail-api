@@ -55,13 +55,11 @@ class CocktailQuery
     public function filter(array $filters = []): self
     {
         foreach ($filters as $filter) {
-            if (isset($filter['name'], $filter['values'])) {
-                $this->query = $this->applyFilter(
-                    $this->query,
-                    $filter['name'],
-                    $filter['values']
-                );
-            }
+            $this->query = $this->applyFilter(
+                $this->query,
+                $filter['name'],
+                $filter['values']
+            );
         }
 
         return $this;
@@ -100,7 +98,7 @@ class CocktailQuery
      */
     public function sort(array $sorting): self
     {
-        if (!empty($sorting) && isset($sorting[0]['attribute'], $sorting[0]['direction'])) {
+        if (!empty($sorting)) {
             $this->query = $this->applySorting(
                 $this->query,
                 $sorting[0]['attribute'],
@@ -128,6 +126,7 @@ class CocktailQuery
      */
     public function limit(int $limit = 10): Collection
     {
+        /** @var Collection<int, Cocktail> */
         return $this->query->limit($limit)->get();
     }
 

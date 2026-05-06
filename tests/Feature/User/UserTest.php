@@ -4,16 +4,19 @@ namespace Tests\Feature\User;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\Fluent\Concerns\Has;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\Cocktail\ImageTestHelper;
 use Tests\TestCase;
 
 class UserTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, ImageTestHelper;
 
     #[Test, Group('user-profile')]
     public function it_shows_user(): void
@@ -190,5 +193,137 @@ class UserTest extends TestCase
         $this->putJson('/api/user', [
             'name' => 'a'                           // Invalid data
         ])->assertJsonValidationErrors(['name']);
+    }
+
+    #[Test, Group('user-profile')]
+    public function it_updates_only_provided_fields(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'old-name',
+            'email' => 'old@test.at'
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $this->putJson('/api/user', [
+            'name' => 'new-name'
+        ])->assertOk();
+
+        $user->refresh();
+
+        $this->assertEquals('new-name', $user->name);
+        $this->assertEquals('old@test.at', $user->email); // wichtig
+    }
+
+    #[Test, Group('user-profile')]
+    public function it_ignores_unique_email_for_same_user(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $this->putJson('/api/user', [
+            'email' => $user->email
+        ])->assertOk();
+    }
+
+    #[Test, Group('user-profile')]
+    public function it_requires_authentication(): void
+    {
+        $this->putJson('/api/user', [])
+            ->assertUnauthorized();
+    }
+
+    #[Test, Group('user-profile')]
+    public function it_resets_email_verification_when_email_changes(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now()
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $this->putJson('/api/user', [
+            'email' => 'new@test.at'
+        ])->assertOk();
+
+        $user->refresh();
+
+        $this->assertNull($user->email_verified_at);
+    }
+
+    #[Test, Group('user-profile'), Group('image')]
+    public function it_updates_user_with_image(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $file = UploadedFile::fake()->image('avatar.png');
+
+        $this->post(
+            '/api/user',
+            [
+                '_method' => 'PUT',
+                'image' => $file
+            ],
+            ['Accept' => 'application/json']
+        )->assertOk();
+
+        // Datei wurde gespeichert
+        Storage::disk('public')->assertExists('images/'.$file->hashName());
+
+        // DB Eintrag vorhanden
+        $this->assertDatabaseHas('images', [
+            'imageable_id' => $user->id,
+            'imageable_type' => User::class,
+        ]);
+    }
+
+    #[Test, Group('user-profile'), Group('image')]
+    public function it_replaces_existing_user_image(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        // altes Bild
+        $this->fakeHasImage($user, 'old.png', 'image/png');
+
+        $new = UploadedFile::fake()->image('new.png');
+
+        $this->post(
+            '/api/user',
+            [
+                '_method' => 'PUT',
+                'image' => $new
+            ],
+            ['Accept' => 'application/json']
+        )->assertOk();
+
+        Storage::disk('public')->assertExists('images/'.$new->hashName());
+    }
+
+    #[Test, Group('user-profile'), Group('image')]
+    public function it_validates_user_image_type(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $file = UploadedFile::fake()->create('file.pdf', 100, 'application/pdf');
+
+        $this->post(
+            '/api/user',
+            [
+                '_method' => 'PUT',
+                'image' => $file
+            ],
+            ['Accept' => 'application/json']
+        )->assertJsonValidationErrors(['image']);
     }
 }

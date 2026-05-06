@@ -29,7 +29,7 @@ class Ingredient extends Model
     ];
 
     /**
-     * @return BelongsToMany<Cocktail, $this>
+     * @return BelongsToMany<Cocktail, $this, CocktailIngredient>
      */
     public function cocktails(): BelongsToMany
     {

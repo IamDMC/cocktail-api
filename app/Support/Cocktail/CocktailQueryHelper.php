@@ -12,6 +12,7 @@ class CocktailQueryHelper
             'ingredients',
             'ratings.user',
             'favoredBy',
+            'image',
         ];
     }
 

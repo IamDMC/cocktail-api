@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Cocktail;
 
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\ImageResource;
 use App\Http\Resources\RatingResource;
 use App\Http\Resources\UserResource;
 use App\Models\Cocktail;
@@ -65,6 +66,11 @@ class CocktailResource extends JsonResource
             'favoredBy' => $this->whenLoaded(
                 'favoredBy',
                 fn () => UserResource::collection($this->resource->favoredBy)
+            ),
+
+            'image' => $this->whenLoaded(
+                'image',
+                fn () => new ImageResource($this->resource->image)
             ),
         ];
     }
