@@ -13,7 +13,7 @@ class ToggleFavoriteCocktailAction
      */
     public function add(Cocktail $cocktail, User $user): void
     {
-        $cocktail->favoredBy()->attach([$user->id]);
+        $cocktail->favoredBy()->syncWithoutDetaching([$user->id]);
     }
 
     /**

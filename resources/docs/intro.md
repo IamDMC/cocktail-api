@@ -1,11 +1,3 @@
-# Introduction
-
-
-
-<aside>
-    <strong>Base URL</strong>: <code>http://localhost:8000</code>
-</aside>
-
 # Cocktail API
 
 The Cocktail API allows authenticated users to manage cocktails, ingredients, categories, ratings and favorites.
@@ -25,8 +17,8 @@ Authorization: Bearer YOUR_TOKEN
 ```
 
 Most endpoints require:
-- authenticated user
-- verified email address
+- an authenticated user
+- a verified email address
 
 ## Response Format
 
@@ -47,7 +39,7 @@ Validation errors return HTTP 422 responses.
 
 ## Including Relationships
 
-Relationships can be included via the `include[]` query parameter.
+Cocktail endpoints support eager loading via the `include[]` query parameter.
 
 Example:
 
@@ -62,10 +54,11 @@ Available includes:
 - steps
 - ratings.user
 - favoredBy
+- image
 
 ## Filtering
 
-Collections can be filtered using the `filter[]` parameter.
+Cocktail collection endpoints support filtering via the `filter[]` query parameter.
 
 Example:
 
@@ -73,16 +66,27 @@ Example:
 GET /api/cocktails?filter[0][name]=categories&filter[0][values][]=1
 ```
 
+Available filters:
+- categories
+- ingredients
 
 ## Sorting
 
-Collections support sorting.
+Cocktail collection endpoints support sorting.
 
 Example:
 
 ```http
 GET /api/cocktails?sorting[0][attribute]=name&sorting[0][direction]=asc
 ```
+
+Available sorting attributes:
+- name
+- created_at
+
+Available sorting directions:
+- asc
+- desc
 
 ## Pagination
 
@@ -100,6 +104,29 @@ Some endpoints also support limiting results:
 GET /api/cocktails?limit=5
 ```
 
+## File Uploads
+
+Cocktail create and update endpoints support image uploads using `multipart/form-data`.
+
+Example fields:
+
+```text
+name: Mojito
+image: cocktail.png
+```
+
+## Authorization
+
+Some endpoints require administrator privileges.
+
+Creating, updating and deleting:
+- categories
+- ingredients
+
+is restricted to admin users only.
+
+Cocktails can only be updated or deleted by their owner.
+
 ## HTTP Status Codes
 
 | Status Code | Meaning |
@@ -115,5 +142,3 @@ GET /api/cocktails?limit=5
 ## Development Notes
 
 This project is actively developed and endpoints may evolve over time.
-
-

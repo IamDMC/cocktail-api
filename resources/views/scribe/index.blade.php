@@ -61,6 +61,37 @@
                     <a href="#introduction">Introduction</a>
                 </li>
                             </ul>
+                    <ul id="tocify-header-cocktail-api" class="tocify-header">
+                <li class="tocify-item level-1" data-unique="cocktail-api">
+                    <a href="#cocktail-api">Cocktail API</a>
+                </li>
+                                    <ul id="tocify-subheader-cocktail-api" class="tocify-subheader">
+                                                    <li class="tocify-item level-2" data-unique="authentication">
+                                <a href="#authentication">Authentication</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="response-format">
+                                <a href="#response-format">Response Format</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="including-relationships">
+                                <a href="#including-relationships">Including Relationships</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="filtering">
+                                <a href="#filtering">Filtering</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="sorting">
+                                <a href="#sorting">Sorting</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="pagination">
+                                <a href="#pagination">Pagination</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="http-status-codes">
+                                <a href="#http-status-codes">HTTP Status Codes</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="development-notes">
+                                <a href="#development-notes">Development Notes</a>
+                            </li>
+                                                                        </ul>
+                            </ul>
                     <ul id="tocify-header-authenticating-requests" class="tocify-header">
                 <li class="tocify-item level-1" data-unique="authenticating-requests">
                     <a href="#authenticating-requests">Authenticating requests</a>
@@ -222,7 +253,7 @@
     </ul>
 
     <ul class="toc-footer" id="last-updated">
-        <li>Last updated: May 6, 2026</li>
+        <li>Last updated: May 7, 2026</li>
     </ul>
 </div>
 
@@ -233,10 +264,97 @@
 <aside>
     <strong>Base URL</strong>: <code>http://localhost:8000</code>
 </aside>
-<pre><code>This documentation aims to provide all the information you need to work with our API.
-
-&lt;aside&gt;As you scroll, you'll see code examples for working with the API in different programming languages in the dark area to the right (or as part of the content on mobile).
-You can switch the language used with the tabs at the top right (or from the nav menu at the top left on mobile).&lt;/aside&gt;</code></pre>
+<h1 id="cocktail-api">Cocktail API</h1>
+<p>The Cocktail API allows authenticated users to manage cocktails, ingredients, categories, ratings and favorites.</p>
+<p>This API is built with Laravel 12 and uses token-based authentication via Laravel Sanctum.</p>
+<p>All responses are returned in JSON format.</p>
+<h2 id="authentication">Authentication</h2>
+<p>Authenticate via Bearer token.</p>
+<p>After login, include the token in the Authorization header:</p>
+<pre><code class="language-http">Authorization: Bearer YOUR_TOKEN</code></pre>
+<p>Most endpoints require:</p>
+<ul>
+<li>authenticated user</li>
+<li>verified email address</li>
+</ul>
+<h2 id="response-format">Response Format</h2>
+<p>Successful responses return JSON resources.</p>
+<p>Example:</p>
+<pre><code class="language-json">{
+  "data": {
+    "id": 1,
+    "name": "Mojito"
+  }
+}</code></pre>
+<p>Validation errors return HTTP 422 responses.</p>
+<h2 id="including-relationships">Including Relationships</h2>
+<p>Relationships can be included via the <code>include[]</code> query parameter.</p>
+<p>Example:</p>
+<pre><code class="language-http">GET /api/cocktails?include[]=categories&amp;include[]=ingredients</code></pre>
+<p>Available includes:</p>
+<ul>
+<li>user</li>
+<li>categories</li>
+<li>ingredients</li>
+<li>steps</li>
+<li>ratings.user</li>
+<li>favoredBy</li>
+</ul>
+<h2 id="filtering">Filtering</h2>
+<p>Collections can be filtered using the <code>filter[]</code> parameter.</p>
+<p>Example:</p>
+<pre><code class="language-http">GET /api/cocktails?filter[0][name]=categories&amp;filter[0][values][]=1</code></pre>
+<h2 id="sorting">Sorting</h2>
+<p>Collections support sorting.</p>
+<p>Example:</p>
+<pre><code class="language-http">GET /api/cocktails?sorting[0][attribute]=name&amp;sorting[0][direction]=asc</code></pre>
+<h2 id="pagination">Pagination</h2>
+<p>Paginated responses support the <code>per_page</code> parameter.</p>
+<p>Example:</p>
+<pre><code class="language-http">GET /api/cocktails?per_page=20</code></pre>
+<p>Some endpoints also support limiting results:</p>
+<pre><code class="language-http">GET /api/cocktails?limit=5</code></pre>
+<h2 id="http-status-codes">HTTP Status Codes</h2>
+<table>
+<thead>
+<tr>
+<th>Status Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td>Successful request</td>
+</tr>
+<tr>
+<td>201</td>
+<td>Resource created</td>
+</tr>
+<tr>
+<td>204</td>
+<td>Resource deleted</td>
+</tr>
+<tr>
+<td>401</td>
+<td>Unauthorized</td>
+</tr>
+<tr>
+<td>403</td>
+<td>Forbidden</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Resource not found</td>
+</tr>
+<tr>
+<td>422</td>
+<td>Validation error</td>
+</tr>
+</tbody>
+</table>
+<h2 id="development-notes">Development Notes</h2>
+<p>This project is actively developed and endpoints may evolve over time.</p>
 
         <h1 id="authenticating-requests">Authenticating requests</h1>
 <p>To authenticate requests, include an <strong><code>Authorization</code></strong> header with the value <strong><code>"Bearer your-token"</code></strong>.</p>
@@ -795,7 +913,7 @@ fetch(url, {
 
 <span id="example-responses-GETapi-categories">
             <blockquote>
-            <p>Example response (200):</p>
+            <p>Example response (401):</p>
         </blockquote>
                 <details class="annotation">
             <summary style="cursor: pointer;">
@@ -807,99 +925,7 @@ access-control-allow-origin: *
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;data&quot;: [
-        {
-            &quot;id&quot;: 49,
-            &quot;name&quot;: &quot;besties&quot;,
-            &quot;description&quot;: &quot;Alcoholic drinks&quot;
-        },
-        {
-            &quot;id&quot;: 3,
-            &quot;name&quot;: &quot;Cocktails&quot;,
-            &quot;description&quot;: &quot;Alcoholic drinks&quot;
-        },
-        {
-            &quot;id&quot;: 5,
-            &quot;name&quot;: &quot;Cocktailsss&quot;,
-            &quot;description&quot;: &quot;Alcoholic drinks&quot;
-        },
-        {
-            &quot;id&quot;: 10,
-            &quot;name&quot;: &quot;cold&quot;,
-            &quot;description&quot;: &quot;Served cold usually with ice.&quot;
-        },
-        {
-            &quot;id&quot;: 6,
-            &quot;name&quot;: &quot;digestif&quot;,
-            &quot;description&quot;: &quot;Usually served after a meal.&quot;
-        },
-        {
-            &quot;id&quot;: 9,
-            &quot;name&quot;: &quot;hot&quot;,
-            &quot;description&quot;: &quot;Served warm or hot.&quot;
-        },
-        {
-            &quot;id&quot;: 8,
-            &quot;name&quot;: &quot;light&quot;,
-            &quot;description&quot;: &quot;Low alcohol content.&quot;
-        },
-        {
-            &quot;id&quot;: 4,
-            &quot;name&quot;: &quot;short-drink&quot;,
-            &quot;description&quot;: &quot;Served in a small glass with lower volume.&quot;
-        },
-        {
-            &quot;id&quot;: 7,
-            &quot;name&quot;: &quot;strong&quot;,
-            &quot;description&quot;: &quot;High alcohol content.&quot;
-        },
-        {
-            &quot;id&quot;: 11,
-            &quot;name&quot;: &quot;Summer Drinks&quot;,
-            &quot;description&quot;: &quot;Refreshing cocktails for summer.&quot;
-        }
-    ],
-    &quot;links&quot;: {
-        &quot;first&quot;: &quot;http://localhost:8000/api/categories?page=1&quot;,
-        &quot;last&quot;: &quot;http://localhost:8000/api/categories?page=2&quot;,
-        &quot;prev&quot;: null,
-        &quot;next&quot;: &quot;http://localhost:8000/api/categories?page=2&quot;
-    },
-    &quot;meta&quot;: {
-        &quot;current_page&quot;: 1,
-        &quot;from&quot;: 1,
-        &quot;last_page&quot;: 2,
-        &quot;links&quot;: [
-            {
-                &quot;url&quot;: null,
-                &quot;label&quot;: &quot;&amp;laquo; Previous&quot;,
-                &quot;page&quot;: null,
-                &quot;active&quot;: false
-            },
-            {
-                &quot;url&quot;: &quot;http://localhost:8000/api/categories?page=1&quot;,
-                &quot;label&quot;: &quot;1&quot;,
-                &quot;page&quot;: 1,
-                &quot;active&quot;: true
-            },
-            {
-                &quot;url&quot;: &quot;http://localhost:8000/api/categories?page=2&quot;,
-                &quot;label&quot;: &quot;2&quot;,
-                &quot;page&quot;: 2,
-                &quot;active&quot;: false
-            },
-            {
-                &quot;url&quot;: &quot;http://localhost:8000/api/categories?page=2&quot;,
-                &quot;label&quot;: &quot;Next &amp;raquo;&quot;,
-                &quot;page&quot;: 2,
-                &quot;active&quot;: false
-            }
-        ],
-        &quot;path&quot;: &quot;http://localhost:8000/api/categories&quot;,
-        &quot;per_page&quot;: 10,
-        &quot;to&quot;: 10,
-        &quot;total&quot;: 11
-    }
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -1070,7 +1096,7 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 128,
+        &quot;id&quot;: 26,
         &quot;name&quot;: &quot;veniam&quot;,
         &quot;description&quot;: &quot;Fuga aspernatur natus earum quas.&quot;
     }
@@ -1208,7 +1234,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://localhost:8000/api/categories/3" \
+    --get "http://localhost:8000/api/categories/1" \
     --header "Authorization: Bearer 3V5EgbkvZcDPa166h8fd4ae" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -1216,7 +1242,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://localhost:8000/api/categories/3"
+    "http://localhost:8000/api/categories/1"
 );
 
 const headers = {
@@ -1241,7 +1267,7 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 129,
+        &quot;id&quot;: 27,
         &quot;name&quot;: &quot;dolores&quot;,
         &quot;description&quot;: &quot;Ipsam sit veniam sed fuga aspernatur natus.&quot;
     }
@@ -1339,10 +1365,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="id"                data-endpoint="GETapi-categories--id-"
-               value="3"
+               value="1"
                data-component="url">
     <br>
-<p>The ID of the category. Example: <code>3</code></p>
+<p>The ID of the category. Example: <code>1</code></p>
             </div>
                     </form>
 
@@ -1360,7 +1386,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request PUT \
-    "http://localhost:8000/api/categories/3" \
+    "http://localhost:8000/api/categories/1" \
     --header "Authorization: Bearer 3V5EgbkvZcDPa166h8fd4ae" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
@@ -1373,7 +1399,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://localhost:8000/api/categories/3"
+    "http://localhost:8000/api/categories/1"
 );
 
 const headers = {
@@ -1403,7 +1429,7 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 130,
+        &quot;id&quot;: 28,
         &quot;name&quot;: &quot;sed&quot;,
         &quot;description&quot;: &quot;Aspernatur natus earum quas dignissimos perferendis voluptatibus.&quot;
     }
@@ -1512,10 +1538,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="id"                data-endpoint="PUTapi-categories--id-"
-               value="3"
+               value="1"
                data-component="url">
     <br>
-<p>The ID of the category. Example: <code>3</code></p>
+<p>The ID of the category. Example: <code>1</code></p>
             </div>
                             <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
         <div style=" padding-left: 28px;  clear: unset;">
@@ -1558,7 +1584,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request DELETE \
-    "http://localhost:8000/api/categories/3" \
+    "http://localhost:8000/api/categories/1" \
     --header "Authorization: Bearer 3V5EgbkvZcDPa166h8fd4ae" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -1566,7 +1592,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://localhost:8000/api/categories/3"
+    "http://localhost:8000/api/categories/1"
 );
 
 const headers = {
@@ -1683,10 +1709,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="id"                data-endpoint="DELETEapi-categories--id-"
-               value="3"
+               value="1"
                data-component="url">
     <br>
-<p>The ID of the category. Example: <code>3</code></p>
+<p>The ID of the category. Example: <code>1</code></p>
             </div>
                     </form>
 
@@ -2083,7 +2109,7 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 33,
+        &quot;id&quot;: 43,
         &quot;rating&quot;: 1,
         &quot;comment&quot;: &quot;dolores&quot;
     }
@@ -2296,7 +2322,7 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 34,
+        &quot;id&quot;: 44,
         &quot;rating&quot;: 1,
         &quot;comment&quot;: &quot;dolores&quot;
     }
@@ -2470,7 +2496,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://localhost:8000/api/cocktails?per_page=17&amp;limit=17&amp;search=consequatur&amp;scope=owned&amp;include[]=consequatur&amp;filter[]=consequatur&amp;sorting[0][attribute]=name&amp;sorting[0][direction]=asc" \
+    --get "http://localhost:8000/api/cocktails?per_page=10&amp;limit=5&amp;search=mojito&amp;scope=public_or_owned&amp;include[]=image&amp;sorting[0][attribute]=created_at&amp;sorting[0][direction]=desc&amp;filter[0][name]=ingredients&amp;filter[0][values][]=46&amp;include%5B%5D=categories&amp;sorting%5B0%5D%5Battribute%5D=name&amp;sorting%5B0%5D%5Bdirection%5D=asc&amp;filter%5B0%5D%5Bname%5D=categories&amp;filter%5B0%5D%5Bvalues%5D%5B%5D=1" \
     --header "Authorization: Bearer 3V5EgbkvZcDPa166h8fd4ae" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -2482,14 +2508,20 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const params = {
-    "per_page": "17",
-    "limit": "17",
-    "search": "consequatur",
-    "scope": "owned",
-    "include[0]": "consequatur",
-    "filter[0]": "consequatur",
+    "per_page": "10",
+    "limit": "5",
+    "search": "mojito",
+    "scope": "public_or_owned",
+    "include[0]": "image",
+    "sorting[0][attribute]": "created_at",
+    "sorting[0][direction]": "desc",
+    "filter[0][name]": "ingredients",
+    "filter[0][values][0]": "46",
+    "include[]": "categories",
     "sorting[0][attribute]": "name",
     "sorting[0][direction]": "asc",
+    "filter[0][name]": "categories",
+    "filter[0][values][]": "1",
 };
 Object.keys(params)
     .forEach(key =&gt; url.searchParams.append(key, params[key]));
@@ -2510,7 +2542,7 @@ fetch(url, {
 
 <span id="example-responses-GETapi-cocktails">
             <blockquote>
-            <p>Example response (422):</p>
+            <p>Example response (401):</p>
         </blockquote>
                 <details class="annotation">
             <summary style="cursor: pointer;">
@@ -2522,18 +2554,7 @@ access-control-allow-origin: *
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;The selected include.0 is invalid. (and 2 more errors)&quot;,
-    &quot;errors&quot;: {
-        &quot;include.0&quot;: [
-            &quot;The selected include.0 is invalid.&quot;
-        ],
-        &quot;filter.0.name&quot;: [
-            &quot;The filter.0.name field is required.&quot;
-        ],
-        &quot;filter.0.values&quot;: [
-            &quot;The filter.0.values field is required.&quot;
-        ]
-    }
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -2628,10 +2649,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="per_page"                data-endpoint="GETapi-cocktails"
-               value="17"
+               value="10"
                data-component="query">
     <br>
-<p>Paginate results Example: <code>17</code></p>
+<p>Paginate results Example: <code>10</code></p>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>limit</code></b>&nbsp;&nbsp;
@@ -2640,10 +2661,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="limit"                data-endpoint="GETapi-cocktails"
-               value="17"
+               value="5"
                data-component="query">
     <br>
-<p>Limit results (if not paginated) Example: <code>17</code></p>
+<p>Limit results if pagination is not used Example: <code>5</code></p>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>search</code></b>&nbsp;&nbsp;
@@ -2652,10 +2673,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="search"                data-endpoint="GETapi-cocktails"
-               value="consequatur"
+               value="mojito"
                data-component="query">
     <br>
-<p>Search term for name/description Example: <code>consequatur</code></p>
+<p>Search by cocktail name or description Example: <code>mojito</code></p>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>scope</code></b>&nbsp;&nbsp;
@@ -2664,12 +2685,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="scope"                data-endpoint="GETapi-cocktails"
-               value="owned"
+               value="public_or_owned"
                data-component="query">
     <br>
-<p>Example: <code>owned</code></p>
-Must be one of:
-<ul style="list-style-type: square;"><li><code>public</code></li> <li><code>owned</code></li> <li><code>public_or_owned</code></li></ul>
+<p>Visibility scope. Possible values: public, owned, public_or_owned Example: <code>public_or_owned</code></p>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>include</code></b>&nbsp;&nbsp;
@@ -2683,11 +2702,13 @@ Must be one of:
                name="include[1]"                data-endpoint="GETapi-cocktails"
                data-component="query">
     <br>
-<p>Relations to include (user, categories, steps, ingredients, ratings.user, favoredBy)</p>
+
+Must be one of:
+<ul style="list-style-type: square;"><li><code>user</code></li> <li><code>categories</code></li> <li><code>steps</code></li> <li><code>ingredients</code></li> <li><code>ratings.user</code></li> <li><code>favoredBy</code></li> <li><code>image</code></li></ul>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>filter</code></b>&nbsp;&nbsp;
-<small>string[]</small>&nbsp;
+<small>object[]</small>&nbsp;
 <i>optional</i> &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
@@ -2697,21 +2718,19 @@ Must be one of:
                name="filter[1]"                data-endpoint="GETapi-cocktails"
                data-component="query">
     <br>
-<p>Filter options</p>
+<p>Must have at least 1 items.</p>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>sorting</code></b>&nbsp;&nbsp;
-<small>string[]</small>&nbsp;
+<small>object</small>&nbsp;
 <i>optional</i> &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="sorting[0]"                data-endpoint="GETapi-cocktails"
-               data-component="query">
-        <input type="text" style="display: none"
-               name="sorting[1]"                data-endpoint="GETapi-cocktails"
+                              name="sorting"                data-endpoint="GETapi-cocktails"
+               value=""
                data-component="query">
     <br>
-<p>Sorting options</p>
+<p>Must have at least 1 items. Must not have more than 1 items.</p>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>sorting.0</code></b>&nbsp;&nbsp;
@@ -2732,10 +2751,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="sorting.0.attribute"                data-endpoint="GETapi-cocktails"
-               value="name"
+               value="created_at"
                data-component="query">
     <br>
-<p>This field is required when <code>sorting</code> is present. Example: <code>name</code></p>
+<p>This field is required when <code>sorting</code> is present. Example: <code>created_at</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>name</code></li> <li><code>created_at</code></li></ul>
             </div>
@@ -2746,31 +2765,31 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="sorting.0.direction"                data-endpoint="GETapi-cocktails"
-               value="asc"
+               value="desc"
                data-component="query">
     <br>
-<p>This field is required when <code>sorting</code> is present. Example: <code>asc</code></p>
+<p>This field is required when <code>sorting</code> is present. Example: <code>desc</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>asc</code></li> <li><code>desc</code></li></ul>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>filter[].name</code></b>&nbsp;&nbsp;
 <small>string</small>&nbsp;
- &nbsp;
+<i>optional</i> &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
                               name="filter.0.name"                data-endpoint="GETapi-cocktails"
                value="ingredients"
                data-component="query">
     <br>
-<p>Example: <code>ingredients</code></p>
+<p>This field is required when <code>filter.*.values</code> is present. Example: <code>ingredients</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>categories</code></li> <li><code>ingredients</code></li></ul>
             </div>
                                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>filter[].values</code></b>&nbsp;&nbsp;
 <small>integer[]</small>&nbsp;
- &nbsp;
+<i>optional</i> &nbsp;
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="filter.0.values[0]"                data-endpoint="GETapi-cocktails"
@@ -2779,7 +2798,67 @@ Must be one of:
                name="filter.0.values[1]"                data-endpoint="GETapi-cocktails"
                data-component="query">
     <br>
-<p>Must be at least 1.</p>
+<p>This field is required when <code>filter.*.values</code> is present. Must be at least 1.</p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>include[]</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="include.0"                data-endpoint="GETapi-cocktails"
+               value="categories"
+               data-component="query">
+    <br>
+<p>Relations to include. Possible values: user, categories, steps, ingredients, ratings.user, favoredBy, image Example: <code>categories</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>sorting[0][attribute]</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="sorting[0][attribute]"                data-endpoint="GETapi-cocktails"
+               value="name"
+               data-component="query">
+    <br>
+<p>Sort attribute. Possible values: name, created_at Example: <code>name</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>sorting[0][direction]</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="sorting[0][direction]"                data-endpoint="GETapi-cocktails"
+               value="asc"
+               data-component="query">
+    <br>
+<p>Sort direction. Possible values: asc, desc Example: <code>asc</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>filter[0][name]</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="filter[0][name]"                data-endpoint="GETapi-cocktails"
+               value="categories"
+               data-component="query">
+    <br>
+<p>Filter name. Possible values: categories, ingredients Example: <code>categories</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>filter[0][values][]</code></b>&nbsp;&nbsp;
+<small>integer</small>&nbsp;
+<i>optional</i> &nbsp;
+ &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="filter[0][values].0"                data-endpoint="GETapi-cocktails"
+               value="1"
+               data-component="query">
+    <br>
+<p>Filter values Example: <code>1</code></p>
             </div>
                 </form>
 
@@ -2799,24 +2878,18 @@ Must be one of:
     <pre><code class="language-bash">curl --request POST \
     "http://localhost:8000/api/cocktails" \
     --header "Authorization: Bearer 3V5EgbkvZcDPa166h8fd4ae" \
-    --header "Content-Type: application/json" \
+    --header "Content-Type: multipart/form-data" \
     --header "Accept: application/json" \
-    --data "{
-    \"name\": \"Mojito\",
-    \"description\": \"Fresh cocktail with mint\",
-    \"isPublic\": true,
-    \"steps\": [
-        \"consequatur\"
-    ],
-    \"ingredients\": [
-        \"consequatur\"
-    ],
-    \"categoryIds\": [
-        \"consequatur\"
-    ],
-    \"categoryIds[]\": 1
-}"
-</code></pre></div>
+    --form "name=Mojito"\
+    --form "description=Fresh cocktail with mint"\
+    --form "isPublic=1"\
+    --form "steps[][stepNumber]=1"\
+    --form "steps[][instruction]=Mix ingredients"\
+    --form "ingredients[][id]=1"\
+    --form "ingredients[][amount]=2"\
+    --form "ingredients[][overwriteUnit]=ml"\
+    --form "categoryIds[]=1"\
+    --form "image=@C:\Users\Danie\AppData\Local\Temp\php76B4.tmp" </code></pre></div>
 
 
 <div class="javascript-example">
@@ -2826,30 +2899,26 @@ Must be one of:
 
 const headers = {
     "Authorization": "Bearer 3V5EgbkvZcDPa166h8fd4ae",
-    "Content-Type": "application/json",
+    "Content-Type": "multipart/form-data",
     "Accept": "application/json",
 };
 
-let body = {
-    "name": "Mojito",
-    "description": "Fresh cocktail with mint",
-    "isPublic": true,
-    "steps": [
-        "consequatur"
-    ],
-    "ingredients": [
-        "consequatur"
-    ],
-    "categoryIds": [
-        "consequatur"
-    ],
-    "categoryIds[]": 1
-};
+const body = new FormData();
+body.append('name', 'Mojito');
+body.append('description', 'Fresh cocktail with mint');
+body.append('isPublic', '1');
+body.append('steps[][stepNumber]', '1');
+body.append('steps[][instruction]', 'Mix ingredients');
+body.append('ingredients[][id]', '1');
+body.append('ingredients[][amount]', '2');
+body.append('ingredients[][overwriteUnit]', 'ml');
+body.append('categoryIds[]', '1');
+body.append('image', document.querySelector('input[name="image"]').files[0]);
 
 fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify(body),
+    body,
 }).then(response =&gt; response.json());</code></pre></div>
 
 </span>
@@ -2874,7 +2943,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <form id="form-POSTapi-cocktails" data-method="POST"
       data-path="api/cocktails"
       data-authed="1"
-      data-hasfiles="0"
+      data-hasfiles="1"
       data-isarraybody="0"
       autocomplete="off"
       onsubmit="event.preventDefault(); executeTryOut('POSTapi-cocktails', this);">
@@ -2922,10 +2991,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="Content-Type"                data-endpoint="POSTapi-cocktails"
-               value="application/json"
+               value="multipart/form-data"
                data-component="header">
     <br>
-<p>Example: <code>application/json</code></p>
+<p>Example: <code>multipart/form-data</code></p>
             </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
@@ -2950,7 +3019,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
                value="Mojito"
                data-component="body">
     <br>
-<p>Name of the cocktail Example: <code>Mojito</code></p>
+<p>Cocktail name Example: <code>Mojito</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>description</code></b>&nbsp;&nbsp;
@@ -2962,7 +3031,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
                value="Fresh cocktail with mint"
                data-component="body">
     <br>
-<p>Description Example: <code>Fresh cocktail with mint</code></p>
+<p>Cocktail description Example: <code>Fresh cocktail with mint</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>isPublic</code></b>&nbsp;&nbsp;
@@ -2984,13 +3053,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <code>false</code>
         </label>
     <br>
-<p>Is cocktail public Example: <code>true</code></p>
+<p>Whether cocktail is public Example: <code>true</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
         <details>
             <summary style="padding-bottom: 10px;">
                 <b style="line-height: 2;"><code>steps</code></b>&nbsp;&nbsp;
-<small>string[]</small>&nbsp;
+<small>object[]</small>&nbsp;
  &nbsp;
  &nbsp;
 <br>
@@ -3026,7 +3095,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
         <details>
             <summary style="padding-bottom: 10px;">
                 <b style="line-height: 2;"><code>ingredients</code></b>&nbsp;&nbsp;
-<small>string[]</small>&nbsp;
+<small>object[]</small>&nbsp;
  &nbsp;
  &nbsp;
 <br>
@@ -3054,7 +3123,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
                value="2"
                data-component="body">
     <br>
-<p>Amount Example: <code>2</code></p>
+<p>Ingredient amount Example: <code>2</code></p>
                     </div>
                                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>overwriteUnit</code></b>&nbsp;&nbsp;
@@ -3072,13 +3141,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>categoryIds</code></b>&nbsp;&nbsp;
-<small>string[]</small>&nbsp;
+<small>integer[]</small>&nbsp;
  &nbsp;
  &nbsp;
-                <input type="text" style="display: none"
-                              name="categoryIds[0]"                data-endpoint="POSTapi-cocktails"
+                <input type="number" style="display: none"
+               step="any"               name="categoryIds[0]"                data-endpoint="POSTapi-cocktails"
                data-component="body">
-        <input type="text" style="display: none"
+        <input type="number" style="display: none"
                name="categoryIds[1]"                data-endpoint="POSTapi-cocktails"
                data-component="body">
     <br>
@@ -3086,27 +3155,15 @@ You can check the Dev Tools console for debugging information.</code></pre>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>image</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
+<small>file</small>&nbsp;
 <i>optional</i> &nbsp;
  &nbsp;
-                <input type="text" style="display: none"
+                <input type="file" style="display: none"
                               name="image"                data-endpoint="POSTapi-cocktails"
                value=""
                data-component="body">
     <br>
-
-        </div>
-                <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>categoryIds[]</code></b>&nbsp;&nbsp;
-<small>integer</small>&nbsp;
- &nbsp;
- &nbsp;
-                <input type="number" style="display: none"
-               step="any"               name="categoryIds.0"                data-endpoint="POSTapi-cocktails"
-               value="1"
-               data-component="body">
-    <br>
-<p>Category ID Example: <code>1</code></p>
+<p>Cocktail image Example: <code>C:\Users\Danie\AppData\Local\Temp\php76B4.tmp</code></p>
         </div>
         </form>
 
@@ -3124,7 +3181,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://localhost:8000/api/cocktails/1?include[]=consequatur" \
+    --get "http://localhost:8000/api/cocktails/1?include[]=user" \
     --header "Authorization: Bearer 3V5EgbkvZcDPa166h8fd4ae" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -3136,7 +3193,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const params = {
-    "include[0]": "consequatur",
+    "include[0]": "user",
 };
 Object.keys(params)
     .forEach(key =&gt; url.searchParams.append(key, params[key]));
@@ -3157,7 +3214,7 @@ fetch(url, {
 
 <span id="example-responses-GETapi-cocktails--id-">
             <blockquote>
-            <p>Example response (422):</p>
+            <p>Example response (401):</p>
         </blockquote>
                 <details class="annotation">
             <summary style="cursor: pointer;">
@@ -3169,12 +3226,7 @@ access-control-allow-origin: *
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;The selected include.0 is invalid.&quot;,
-    &quot;errors&quot;: {
-        &quot;include.0&quot;: [
-            &quot;The selected include.0 is invalid.&quot;
-        ]
-    }
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -3287,7 +3339,9 @@ You can check the Dev Tools console for debugging information.</code></pre>
                name="include[1]"                data-endpoint="GETapi-cocktails--id-"
                data-component="query">
     <br>
-<p>Relations to include (user, categories, steps, ingredients, ratings.user, favoredBy)</p>
+
+Must be one of:
+<ul style="list-style-type: square;"><li><code>user</code></li> <li><code>categories</code></li> <li><code>steps</code></li> <li><code>ingredients</code></li> <li><code>ratings.user</code></li> <li><code>favoredBy</code></li> <li><code>image</code></li></ul>
             </div>
                 </form>
 
@@ -3307,23 +3361,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
     <pre><code class="language-bash">curl --request PUT \
     "http://localhost:8000/api/cocktails/1" \
     --header "Authorization: Bearer 3V5EgbkvZcDPa166h8fd4ae" \
-    --header "Content-Type: application/json" \
+    --header "Content-Type: multipart/form-data" \
     --header "Accept: application/json" \
-    --data "{
-    \"name\": \"Updated Mojito\",
-    \"description\": \"Dolores dolorum amet iste laborum eius est dolor.\",
-    \"isPublic\": false,
-    \"steps\": [
-        \"consequatur\"
-    ],
-    \"ingredients\": [
-        \"consequatur\"
-    ],
-    \"categoryIds\": [
-        \"consequatur\"
-    ]
-}"
-</code></pre></div>
+    --form "name=Updated Mojito"\
+    --form "description=Updated fresh cocktail with mint"\
+    --form "isPublic=1"\
+    --form "steps[][stepNumber]=1"\
+    --form "steps[][instruction]=Mix ingredients"\
+    --form "ingredients[][id]=1"\
+    --form "ingredients[][amount]=2"\
+    --form "ingredients[][overwriteUnit]=ml"\
+    --form "categoryIds[]=1"\
+    --form "image=@C:\Users\Danie\AppData\Local\Temp\php7751.tmp" </code></pre></div>
 
 
 <div class="javascript-example">
@@ -3333,29 +3382,26 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 const headers = {
     "Authorization": "Bearer 3V5EgbkvZcDPa166h8fd4ae",
-    "Content-Type": "application/json",
+    "Content-Type": "multipart/form-data",
     "Accept": "application/json",
 };
 
-let body = {
-    "name": "Updated Mojito",
-    "description": "Dolores dolorum amet iste laborum eius est dolor.",
-    "isPublic": false,
-    "steps": [
-        "consequatur"
-    ],
-    "ingredients": [
-        "consequatur"
-    ],
-    "categoryIds": [
-        "consequatur"
-    ]
-};
+const body = new FormData();
+body.append('name', 'Updated Mojito');
+body.append('description', 'Updated fresh cocktail with mint');
+body.append('isPublic', '1');
+body.append('steps[][stepNumber]', '1');
+body.append('steps[][instruction]', 'Mix ingredients');
+body.append('ingredients[][id]', '1');
+body.append('ingredients[][amount]', '2');
+body.append('ingredients[][overwriteUnit]', 'ml');
+body.append('categoryIds[]', '1');
+body.append('image', document.querySelector('input[name="image"]').files[0]);
 
 fetch(url, {
     method: "PUT",
     headers,
-    body: JSON.stringify(body),
+    body,
 }).then(response =&gt; response.json());</code></pre></div>
 
 </span>
@@ -3380,7 +3426,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <form id="form-PUTapi-cocktails--id-" data-method="PUT"
       data-path="api/cocktails/{id}"
       data-authed="1"
-      data-hasfiles="0"
+      data-hasfiles="1"
       data-isarraybody="0"
       autocomplete="off"
       onsubmit="event.preventDefault(); executeTryOut('PUTapi-cocktails--id-', this);">
@@ -3432,10 +3478,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="Content-Type"                data-endpoint="PUTapi-cocktails--id-"
-               value="application/json"
+               value="multipart/form-data"
                data-component="header">
     <br>
-<p>Example: <code>application/json</code></p>
+<p>Example: <code>multipart/form-data</code></p>
             </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
@@ -3462,18 +3508,30 @@ You can check the Dev Tools console for debugging information.</code></pre>
     <br>
 <p>The ID of the cocktail. Example: <code>1</code></p>
             </div>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>cocktail</code></b>&nbsp;&nbsp;
+<small>integer</small>&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="cocktail"                data-endpoint="PUTapi-cocktails--id-"
+               value="1"
+               data-component="url">
+    <br>
+<p>Cocktail ID Example: <code>1</code></p>
+            </div>
                             <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
         <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>name</code></b>&nbsp;&nbsp;
 <small>string</small>&nbsp;
- &nbsp;
+<i>optional</i> &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
                               name="name"                data-endpoint="PUTapi-cocktails--id-"
                value="Updated Mojito"
                data-component="body">
     <br>
-<p>Name of the cocktail Example: <code>Updated Mojito</code></p>
+<p>Cocktail name Example: <code>Updated Mojito</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>description</code></b>&nbsp;&nbsp;
@@ -3482,15 +3540,15 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="description"                data-endpoint="PUTapi-cocktails--id-"
-               value="Dolores dolorum amet iste laborum eius est dolor."
+               value="Updated fresh cocktail with mint"
                data-component="body">
     <br>
-<p>Description Example: <code>Dolores dolorum amet iste laborum eius est dolor.</code></p>
+<p>Cocktail description Example: <code>Updated fresh cocktail with mint</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>isPublic</code></b>&nbsp;&nbsp;
 <small>boolean</small>&nbsp;
- &nbsp;
+<i>optional</i> &nbsp;
  &nbsp;
                 <label data-endpoint="PUTapi-cocktails--id-" style="display: none">
             <input type="radio" name="isPublic"
@@ -3507,17 +3565,17 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <code>false</code>
         </label>
     <br>
-<p>Is cocktail public Example: <code>false</code></p>
+<p>Whether cocktail is public Example: <code>true</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
         <details>
             <summary style="padding-bottom: 10px;">
                 <b style="line-height: 2;"><code>steps</code></b>&nbsp;&nbsp;
-<small>string[]</small>&nbsp;
- &nbsp;
+<small>object[]</small>&nbsp;
+<i>optional</i> &nbsp;
  &nbsp;
 <br>
-<p>Steps</p>
+<p>Preparation steps</p>
             </summary>
                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>stepNumber</code></b>&nbsp;&nbsp;
@@ -3526,10 +3584,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="steps.0.stepNumber"                data-endpoint="PUTapi-cocktails--id-"
-               value="13"
+               value="1"
                data-component="body">
     <br>
-<p>Must be at least 1. Must not be greater than 15. Example: <code>13</code></p>
+<p>Step order Example: <code>1</code></p>
                     </div>
                                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>instruction</code></b>&nbsp;&nbsp;
@@ -3538,10 +3596,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="steps.0.instruction"                data-endpoint="PUTapi-cocktails--id-"
-               value="mqeopfuudtdsufvyvddqa"
+               value="Mix ingredients"
                data-component="body">
     <br>
-<p>Must be at least 4 characters. Must not be greater than 255 characters. Example: <code>mqeopfuudtdsufvyvddqa</code></p>
+<p>Instruction text Example: <code>Mix ingredients</code></p>
                     </div>
                                     </details>
         </div>
@@ -3549,11 +3607,11 @@ You can check the Dev Tools console for debugging information.</code></pre>
         <details>
             <summary style="padding-bottom: 10px;">
                 <b style="line-height: 2;"><code>ingredients</code></b>&nbsp;&nbsp;
-<small>string[]</small>&nbsp;
- &nbsp;
+<small>object[]</small>&nbsp;
+<i>optional</i> &nbsp;
  &nbsp;
 <br>
-<p>Ingredients</p>
+<p>Ingredients list</p>
             </summary>
                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>id</code></b>&nbsp;&nbsp;
@@ -3562,10 +3620,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="ingredients.0.id"                data-endpoint="PUTapi-cocktails--id-"
-               value="17"
+               value="1"
                data-component="body">
     <br>
-<p>The <code>id</code> of an existing record in the ingredients table. Example: <code>17</code></p>
+<p>Ingredient ID Example: <code>1</code></p>
                     </div>
                                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>amount</code></b>&nbsp;&nbsp;
@@ -3574,10 +3632,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="ingredients.0.amount"                data-endpoint="PUTapi-cocktails--id-"
-               value="13"
+               value="2"
                data-component="body">
     <br>
-<p>Must be at least 0.1. Must not be greater than 1000. Example: <code>13</code></p>
+<p>Ingredient amount Example: <code>2</code></p>
                     </div>
                                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>overwriteUnit</code></b>&nbsp;&nbsp;
@@ -3586,24 +3644,22 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="ingredients.0.overwriteUnit"                data-endpoint="PUTapi-cocktails--id-"
-               value="cl"
+               value="ml"
                data-component="body">
     <br>
-<p>Example: <code>cl</code></p>
-Must be one of:
-<ul style="list-style-type: square;"><li><code>ml</code></li> <li><code>cl</code></li> <li><code>g</code></li> <li><code>piece</code></li> <li><code>half piece</code></li> <li><code>quarter piece</code></li> <li><code>eighth piece</code></li> <li><code>slice</code></li> <li><code>tsp</code></li> <li><code>tbsp</code></li> <li><code>pinch</code></li> <li><code>-</code></li></ul>
+<p>Optional unit override Example: <code>ml</code></p>
                     </div>
                                     </details>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>categoryIds</code></b>&nbsp;&nbsp;
-<small>string[]</small>&nbsp;
+<small>integer[]</small>&nbsp;
+<i>optional</i> &nbsp;
  &nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="categoryIds[0]"                data-endpoint="PUTapi-cocktails--id-"
+                <input type="number" style="display: none"
+               step="any"               name="categoryIds[0]"                data-endpoint="PUTapi-cocktails--id-"
                data-component="body">
-        <input type="text" style="display: none"
+        <input type="number" style="display: none"
                name="categoryIds[1]"                data-endpoint="PUTapi-cocktails--id-"
                data-component="body">
     <br>
@@ -3611,15 +3667,15 @@ Must be one of:
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>image</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
+<small>file</small>&nbsp;
 <i>optional</i> &nbsp;
  &nbsp;
-                <input type="text" style="display: none"
+                <input type="file" style="display: none"
                               name="image"                data-endpoint="PUTapi-cocktails--id-"
                value=""
                data-component="body">
     <br>
-
+<p>Cocktail image Example: <code>C:\Users\Danie\AppData\Local\Temp\php7751.tmp</code></p>
         </div>
         </form>
 
@@ -4081,7 +4137,7 @@ fetch(url, {
 
 <span id="example-responses-GETapi-ingredients">
             <blockquote>
-            <p>Example response (200):</p>
+            <p>Example response (401):</p>
         </blockquote>
                 <details class="annotation">
             <summary style="cursor: pointer;">
@@ -4093,115 +4149,7 @@ access-control-allow-origin: *
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;data&quot;: [
-        {
-            &quot;id&quot;: 14,
-            &quot;name&quot;: &quot;apple juice&quot;,
-            &quot;description&quot;: &quot;Sweet fruit juice from apples. Example: cloudy apple juice&quot;,
-            &quot;default_unit&quot;: &quot;cl&quot;
-        },
-        {
-            &quot;id&quot;: 17,
-            &quot;name&quot;: &quot;cane sugar&quot;,
-            &quot;description&quot;: &quot;Natural sugar from sugar cane. Example: brown sugar&quot;,
-            &quot;default_unit&quot;: &quot;tsp&quot;
-        },
-        {
-            &quot;id&quot;: 12,
-            &quot;name&quot;: &quot;coconut cream&quot;,
-            &quot;description&quot;: &quot;Thick coconut-based cream. Example: Coco Lopez&quot;,
-            &quot;default_unit&quot;: &quot;cl&quot;
-        },
-        {
-            &quot;id&quot;: 21,
-            &quot;name&quot;: &quot;cucumber&quot;,
-            &quot;description&quot;: &quot;Fresh vegetable used in refreshing drinks. Example: gin cocktails&quot;,
-            &quot;default_unit&quot;: &quot;slice&quot;
-        },
-        {
-            &quot;id&quot;: 2,
-            &quot;name&quot;: &quot;dark rum&quot;,
-            &quot;description&quot;: &quot;Aged rum with stronger flavor. Example: Myers&rsquo;s, Captain Morgan Dark&quot;,
-            &quot;default_unit&quot;: &quot;cl&quot;
-        },
-        {
-            &quot;id&quot;: 4,
-            &quot;name&quot;: &quot;gin&quot;,
-            &quot;description&quot;: &quot;Juniper-flavored spirit. Example: Bombay Sapphire, Tanqueray&quot;,
-            &quot;default_unit&quot;: &quot;cl&quot;
-        },
-        {
-            &quot;id&quot;: 10,
-            &quot;name&quot;: &quot;ginger ale&quot;,
-            &quot;description&quot;: &quot;Sweet carbonated ginger-flavored drink. Example: Canada Dry&quot;,
-            &quot;default_unit&quot;: &quot;cl&quot;
-        },
-        {
-            &quot;id&quot;: 15,
-            &quot;name&quot;: &quot;lemon juice&quot;,
-            &quot;description&quot;: &quot;Freshly squeezed lemon juice for acidity&quot;,
-            &quot;default_unit&quot;: &quot;cl&quot;
-        },
-        {
-            &quot;id&quot;: 11,
-            &quot;name&quot;: &quot;lemonade&quot;,
-            &quot;description&quot;: &quot;Sweetened lemon drink. Example: homemade or Sprite-style&quot;,
-            &quot;default_unit&quot;: &quot;cl&quot;
-        },
-        {
-            &quot;id&quot;: 23,
-            &quot;name&quot;: &quot;lime&quot;,
-            &quot;description&quot;: &quot;Citrus fruit used for juice or garnish&quot;,
-            &quot;default_unit&quot;: &quot;slice&quot;
-        }
-    ],
-    &quot;links&quot;: {
-        &quot;first&quot;: &quot;http://localhost:8000/api/ingredients?page=1&quot;,
-        &quot;last&quot;: &quot;http://localhost:8000/api/ingredients?page=3&quot;,
-        &quot;prev&quot;: null,
-        &quot;next&quot;: &quot;http://localhost:8000/api/ingredients?page=2&quot;
-    },
-    &quot;meta&quot;: {
-        &quot;current_page&quot;: 1,
-        &quot;from&quot;: 1,
-        &quot;last_page&quot;: 3,
-        &quot;links&quot;: [
-            {
-                &quot;url&quot;: null,
-                &quot;label&quot;: &quot;&amp;laquo; Previous&quot;,
-                &quot;page&quot;: null,
-                &quot;active&quot;: false
-            },
-            {
-                &quot;url&quot;: &quot;http://localhost:8000/api/ingredients?page=1&quot;,
-                &quot;label&quot;: &quot;1&quot;,
-                &quot;page&quot;: 1,
-                &quot;active&quot;: true
-            },
-            {
-                &quot;url&quot;: &quot;http://localhost:8000/api/ingredients?page=2&quot;,
-                &quot;label&quot;: &quot;2&quot;,
-                &quot;page&quot;: 2,
-                &quot;active&quot;: false
-            },
-            {
-                &quot;url&quot;: &quot;http://localhost:8000/api/ingredients?page=3&quot;,
-                &quot;label&quot;: &quot;3&quot;,
-                &quot;page&quot;: 3,
-                &quot;active&quot;: false
-            },
-            {
-                &quot;url&quot;: &quot;http://localhost:8000/api/ingredients?page=2&quot;,
-                &quot;label&quot;: &quot;Next &amp;raquo;&quot;,
-                &quot;page&quot;: 2,
-                &quot;active&quot;: false
-            }
-        ],
-        &quot;path&quot;: &quot;http://localhost:8000/api/ingredients&quot;,
-        &quot;per_page&quot;: 10,
-        &quot;to&quot;: 10,
-        &quot;total&quot;: 23
-    }
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -4374,7 +4322,7 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 138,
+        &quot;id&quot;: 39,
         &quot;name&quot;: &quot;fuga&quot;,
         &quot;description&quot;: &quot;Natus earum quas dignissimos perferendis.&quot;,
         &quot;default_unit&quot;: &quot;-&quot;
@@ -4558,7 +4506,7 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 139,
+        &quot;id&quot;: 40,
         &quot;name&quot;: &quot;molestias&quot;,
         &quot;description&quot;: &quot;Sit veniam sed fuga aspernatur natus.&quot;,
         &quot;default_unit&quot;: &quot;-&quot;
@@ -4723,7 +4671,7 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 140,
+        &quot;id&quot;: 41,
         &quot;name&quot;: &quot;aspernatur&quot;,
         &quot;description&quot;: &quot;Earum quas dignissimos perferendis voluptatibus incidunt nostrum.&quot;,
         &quot;default_unit&quot;: &quot;cl&quot;
@@ -5220,10 +5168,10 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 32,
+        &quot;id&quot;: 42,
         &quot;email&quot;: &quot;murazik.kacey@example.net&quot;,
         &quot;name&quot;: &quot;Dr. Enoch Harber II&quot;,
-        &quot;email_verified_at&quot;: &quot;2026-05-06T10:14:43.000000Z&quot;
+        &quot;email_verified_at&quot;: &quot;2026-05-07T06:38:26.000000Z&quot;
     }
 }</code>
  </pre>
@@ -5335,7 +5283,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --form "name=John Doe"\
     --form "password=Password1!"\
     --form "password_confirmation=Password1!"\
-    --form "image=@C:\Users\Danie\AppData\Local\Temp\php7D17.tmp" </code></pre></div>
+    --form "image=@C:\Users\Danie\AppData\Local\Temp\php7A31.tmp" </code></pre></div>
 
 
 <div class="javascript-example">
@@ -5372,10 +5320,10 @@ fetch(url, {
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;id&quot;: 33,
+        &quot;id&quot;: 43,
         &quot;email&quot;: &quot;claire77@example.net&quot;,
         &quot;name&quot;: &quot;Miss Lorna Dibbert&quot;,
-        &quot;email_verified_at&quot;: &quot;2026-05-06T10:14:44.000000Z&quot;
+        &quot;email_verified_at&quot;: &quot;2026-05-07T06:38:26.000000Z&quot;
     }
 }</code>
  </pre>
@@ -5510,7 +5458,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
                value=""
                data-component="body">
     <br>
-<p>User profile image (jpeg, png, max 5MB) Example: <code>C:\Users\Danie\AppData\Local\Temp\php7D17.tmp</code></p>
+<p>User profile image (jpeg, png, max 5MB) Example: <code>C:\Users\Danie\AppData\Local\Temp\php7A31.tmp</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>password_confirmation</code></b>&nbsp;&nbsp;
