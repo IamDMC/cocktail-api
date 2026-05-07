@@ -13,10 +13,10 @@ This project was built to deepen my backend development skills with modern Larav
 - CRUD operations for cocktails
 - Cocktail ratings and comments
 - Favorite cocktails
-- Ingredient and category management
+- Ingredient and category management for users with admin privileges
 - Image upload support
-- Filtering, searching, sorting, and pagination
-- Role-based authorization with policies
+- Cocktail filtering, searching, sorting, and pagination
+- Role-based authorization with Laravel Policies
 - API documentation with Scribe
 - Static analysis with PHPStan/Larastan
 - Automated feature testing
@@ -54,11 +54,27 @@ Examples:
 
 Query logic is separated from controllers using dedicated query/read model classes.
 
+The read models use a fluent interface to compose reusable query operations.
+
+Example:
+
+```php
+$baseQuery = (new CocktailQuery())
+    ->forScope($scope, $user)
+    ->search($search)
+    ->filter($filter)
+    ->withRelations($relationsToBeLoaded)
+    ->withStats()
+    ->sort($sorting);
+```
+
 This allows:
 - reusable filtering
-- sorting
+- reusable sorting
 - pagination
+- composable query logic
 - cleaner controllers
+- separation of concerns
 
 ### Form Requests
 
@@ -112,7 +128,6 @@ auth:sanctum
 # Testing
 
 The project contains feature tests for:
-
 - authentication
 - cocktails
 - categories
@@ -155,6 +170,27 @@ git clone https://github.com/IamDMC/cocktail-api.git
 composer install
 ```
 
+## Environment Configuration
+
+Copy the environment file:
+
+```bash
+cp .env.example .env
+```
+
+Generate the application key:
+
+```bash
+php artisan key:generate
+```
+
+Additional environment variables:
+
+```env
+FRONTEND_URL=http://localhost:3000
+SCRIBE_AUTH_KEY=your_generated_token
+```
+
 ## Run Migrations
 
 ```bash
@@ -167,6 +203,30 @@ php artisan migrate
 php artisan db:seed
 ```
 
+The database seeders create demo data for local API testing.
+
+## Storage Link
+
+Create the storage symlink for public image access:
+
+```bash
+php artisan storage:link
+```
+
+## Run Development Server
+
+```bash
+php artisan serve
+```
+
+## Queue Worker
+
+If queue-based mail delivery is enabled, run:
+
+```bash
+php artisan queue:work
+```
+
 ---
 
 # API Documentation
@@ -177,12 +237,26 @@ Generate Scribe documentation:
 php artisan scribe:generate
 ```
 
+After generating the documentation, open:
+
+```text
+http://localhost/docs
+```
+
+The generated Postman collection can be accessed via the `View Postman Collection` button.
+
+Import the collection into Postman to get a preconfigured API testing environment with:
+- preconfigured endpoints
+- request examples
+- query parameters
+- request body examples
+- authentication structure
+
 ---
 
 # Development Goals
 
 This project was built to improve my skills in:
-
 - backend architecture
 - REST API design
 - Laravel best practices
